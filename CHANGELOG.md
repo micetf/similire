@@ -6,6 +6,22 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.3.0] - 2026-02-19 — Sprint 2 : Utilitaires
+
+### Ajouté
+
+- `src/utils/random.js` — fonctions aléatoires pures (Fisher-Yates, tirage, insertion)
+- `src/utils/storage.js` — lecture/écriture localStorage avec valeurs par défaut et gestion d'erreur
+- `src/utils/canvas.js` — primitives de rendu Canvas et téléchargement PNG
+
+### Modifié
+
+- `eslint.config.js` — ajout des globals navigateur (`globals.browser`)
+
+### Dépendances
+
+- `globals` ajouté en devDependency
+
 ## [0.2.0] - 2026-02-19 — Sprint 1 : Constantes et données
 
 ### Ajouté
