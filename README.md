@@ -1,16 +1,50 @@
-# React + Vite
+# SiMiLire
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Retrouve l'étiquette identique — Discrimination visuelle pour améliorer la lecture
 
-Currently, two official plugins are available:
+Application web éducative développée pour [MiCetF](https://micetf.fr).  
+URL de production : `https://micetf.fr/similire/`  
+Ancienne URL : `https://micetf.fr/discrimination/` _(redirection 301 prévue)_
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Stack technique
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Outil        | Version |
+| ------------ | ------- |
+| React        | 18.2.x  |
+| Tailwind CSS | ^3.4.17 |
+| Vite         | ^6.x    |
+| pnpm         | ^10.x   |
 
-## Expanding the ESLint configuration
+## Prérequis
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Node.js ≥ 18
+- pnpm ≥ 10
+
+## Installation
+
+```bash
+pnpm install
+```
+
+## Commandes
+
+```bash
+pnpm run dev      # Serveur de développement → http://localhost:3001
+pnpm run build    # Build de production → dist/
+pnpm run preview  # Prévisualisation du build → http://localhost:4173/similire/
+pnpm run lint     # Vérification ESLint
+```
+
+## Documentation
+
+- `SPECIFICATIONS_FONCTIONNELLES_V0.md` — Spécifications fonctionnelles
+- `SPECIFICATIONS_TECHNIQUES_V0.md` — Spécifications techniques
+- `similire-plan-action.md` — Plan d'action par sprints
+- `CHANGELOG.md` — Historique des versions
+
+## Auteur
+
+Frédéric MISERY — [webmaster@micetf.fr](mailto:webmaster@micetf.fr)  
+[micetf.fr](https://micetf.fr)
