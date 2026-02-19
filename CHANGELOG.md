@@ -6,6 +6,16 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.2.0] - 2026-02-19 — Sprint 1 : Constantes et données
+
+### Ajouté
+
+- `src/constants.js` — toutes les constantes partagées de l'application
+- `src/data/lettres.js` — corpus de 25 lettres avec distracteurs qualifiés
+- `src/data/syllabes.js` — corpus de 32 syllabes avec distracteurs qualifiés
+- `src/data/mots.js` — corpus de 30 mots avec distracteurs qualifiés
+- `src/data/index.js` — point d'entrée du corpus indexé par type d'unité
+
 ## [0.1.0] - 2026-02-19 — Sprint 0 : Initialisation
 
 ### Ajouté
