@@ -1,64 +1,46 @@
 /**
  * Hook moteur de jeu SiMiLire.
- * Gère la génération des tours, le traitement des réponses,
- * le score et la répétition espacée implicite.
- *
- * Responsabilités :
- * - Générer les tours à partir du corpus et de la config
- * - Traiter les réponses (correcte / incorrecte)
- * - Maintenir le score et détecter le seuil du brevet
- * - Implémenter la répétition espacée (items échoués réinsérés en priorité)
- *
- * Hors responsabilité :
- * - Le délai visuel entre tours (géré dans le composant)
- * - La génération du brevet (géré dans useBrevet)
+ * Génère les tours, traite les réponses, mesure la fluidité,
+ * gère le score et la répétition espacée.
  *
  * @module hooks/useGameEngine
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { corpus } from "@data";
-import { SEUIL_BREVET } from "@constants";
 import { melangerTableau, insererAleatoirement } from "@utils/random";
+import { SEUIL_BREVET } from "@constants";
 
 /**
- * @typedef {Object} Tour
- * @property {import('../data/lettres.js').CorpusItem}   modele       - L'item à retrouver
- * @property {import('../data/lettres.js').CorpusItem[]} propositions - Modèle + distracteurs mélangés
+ * @typedef {'attente'|'erreur'|'succes'} StatutTour
  */
 
 /**
- * @typedef {'attente' | 'erreur' | 'succes'} StatutTour
+ * @typedef {Object} Tour
+ * @property {Object}   modele       - Item modèle à retrouver
+ * @property {Object[]} propositions - Items proposés (modèle + distracteurs mélangés)
  */
 
 /**
  * @typedef {Object} GameState
- * @property {Tour}       tourCourant          - Tour en cours d'affichage
- * @property {number}     score                - Bonnes réponses consécutives
- * @property {number}     scoreTotal           - Bonnes réponses sur la session
+ * @property {Tour}       tourCourant          - Tour en cours
+ * @property {number}     score                - Réussites consécutives
+ * @property {number}     scoreTotal           - Réussites totales sur la session
  * @property {StatutTour} statut               - Statut du tour courant
- * @property {boolean}    brevetDisponible     - Seuil de réussite atteint
- * @property {number}     nbErreursTourCourant - Erreurs sur le tour actuel (guidage)
+ * @property {boolean}    brevetDisponible     - Critères fiabilité + fluidité atteints
+ * @property {number}     nbErreursTourCourant - Erreurs sur le tour actuel
+ * @property {number|null} tempsMoyen          - Temps moyen par réponse correcte (ms), null si pas de données
  */
 
 /**
- * @typedef {Object} UseGameEngineReturn
- * @property {GameState} gameState   - État courant du jeu
- * @property {Function}  repondre    - Traite une réponse de l'élève
- * @property {Function}  recommencer - Réinitialise le score et génère un nouveau tour
- */
-
-/**
- * Construit un tour de jeu à partir d'un item modèle et du corpus disponible.
+ * Construit un tour à partir d'un item modèle.
  *
- * @param {import('../data/lettres.js').CorpusItem}   modele         - L'item modèle
- * @param {import('../data/lettres.js').CorpusItem[]} itemsDisponibles - Corpus complet
- * @param {number}                                    nbPropositions - Nombre de propositions
+ * @param {Object}   modele           - Item modèle
+ * @param {Object[]} itemsDisponibles - Corpus complet
+ * @param {number}   nbPropositions   - Nombre de propositions
  * @returns {Tour}
  */
 function construireTour(modele, itemsDisponibles, nbPropositions) {
-    // Prendre les distracteurs qualifiés de l'item
-    // Si pas assez, compléter avec d'autres items du corpus (hors modèle)
     const distracteursQualifies = modele.distracteurs
         .map((val) => itemsDisponibles.find((item) => item.id === val))
         .filter(Boolean);
@@ -80,43 +62,70 @@ function construireTour(modele, itemsDisponibles, nbPropositions) {
         ];
     }
 
-    const propositions = insererAleatoirement(distracteurs, modele);
+    return { modele, propositions: insererAleatoirement(distracteurs, modele) };
+}
 
-    return { modele, propositions };
+/**
+ * Calcule la moyenne d'un tableau de nombres.
+ * Retourne null si le tableau est vide.
+ *
+ * @param {number[]} valeurs
+ * @returns {number|null}
+ */
+function calculerMoyenne(valeurs) {
+    if (valeurs.length === 0) return null;
+    return Math.round(valeurs.reduce((a, b) => a + b, 0) / valeurs.length);
 }
 
 /**
  * Hook moteur de jeu SiMiLire.
  *
  * @param {import('./useConfig.js').Config} config - Configuration courante
- * @returns {UseGameEngineReturn}
+ * @returns {{
+ *   gameState: GameState,
+ *   repondre: function(string): void,
+ *   allerTourSuivant: function(): void,
+ *   recommencer: function(): void,
+ *   demarrerChrono: function(): void,
+ * }}
  */
 export function useGameEngine(config) {
-    const { typeUnite, nbPropositions } = config;
+    const { typeUnite, nbPropositions, delaiMaxFluidite } = config;
 
-    // Corpus disponible selon le type d'unité — recalculé uniquement si typeUnite change
     const itemsDisponibles = useMemo(() => corpus[typeUnite], [typeUnite]);
 
-    // File d'items : détermine l'ordre de passage, mélangée à l'initialisation
     const [fileItems, setFileItems] = useState(() =>
         melangerTableau(corpus[typeUnite])
     );
-
-    // Tour courant : généré à partir du premier item de la file
     const [tourCourant, setTourCourant] = useState(() =>
         construireTour(corpus[typeUnite][0], corpus[typeUnite], nbPropositions)
     );
-
     const [statut, setStatut] = useState(/** @type {StatutTour} */ ("attente"));
     const [score, setScore] = useState(0);
     const [scoreTotal, setScoreTotal] = useState(0);
     const [brevetDisponible, setBrevetDisponible] = useState(false);
     const [nbErreursTourCourant, setNbErreursTourCourant] = useState(0);
 
+    /** Tableau des durées (ms) des réponses correctes de la série en cours */
+    const [tempsParReponse, setTempsParReponse] = useState([]);
+
+    /** Timestamp de début du tour courant — mis à jour par demarrerChrono */
+    const debutTour = useRef(Date.now());
+
     /**
-     * Réinitialise le jeu quand le type d'unité ou le nombre de propositions change.
-     * Cas légitime d'useEffect : réaction à un changement de configuration externe.
+     * Démarre le chronomètre du tour courant.
+     * Appelé depuis App.jsx après le délai d'animation de succès.
+     *
+     * @returns {void}
      */
+    const demarrerChrono = useCallback(() => {
+        debutTour.current = Date.now();
+    }, []);
+
+    /** Temps moyen par réponse correcte sur la série courante (ms), null si aucune donnée */
+    const tempsMoyen = calculerMoyenne(tempsParReponse);
+
+    // Réinitialise le jeu au changement de type d'unité ou de nombre de propositions
     useEffect(() => {
         const items = corpus[typeUnite];
         const nouvelleFile = melangerTableau(items);
@@ -128,13 +137,14 @@ export function useGameEngine(config) {
         setScore(0);
         setScoreTotal(0);
         setBrevetDisponible(false);
+        setTempsParReponse([]);
+        debutTour.current = Date.now();
     }, [typeUnite, nbPropositions]);
 
     /**
-     * Génère le tour suivant en piochant dans la file.
-     * Reconstruit la file si elle est épuisée.
+     * Génère le tour suivant depuis la file.
      *
-     * @param {import('../data/lettres.js').CorpusItem[]} file - File courante
+     * @param {Object[]} file - File d'items courante
      * @returns {void}
      */
     const passerTourSuivant = (file) => {
@@ -151,7 +161,7 @@ export function useGameEngine(config) {
 
     /**
      * Traite la réponse de l'élève.
-     * Appelé par le composant, qui gère lui-même le délai visuel après un succès.
+     * Mesure le temps écoulé depuis le dernier demarrerChrono().
      *
      * @param {string} idClique - Identifiant de l'étiquette cliquée
      * @returns {void}
@@ -160,33 +170,40 @@ export function useGameEngine(config) {
         if (statut === "succes") return;
 
         if (idClique === tourCourant.modele.id) {
-            // Bonne réponse
+            // Bonne réponse — enregistrer le temps
+            const temps = Date.now() - debutTour.current;
+            const nouveauxTemps = [...tempsParReponse, temps];
+            setTempsParReponse(nouveauxTemps);
+
             const nouveauScore = score + 1;
             const nouveauScoreTotal = scoreTotal + 1;
             setScore(nouveauScore);
             setScoreTotal(nouveauScoreTotal);
             setStatut("succes");
 
+            // Critère brevet : fiabilité ET fluidité
             if (nouveauScore >= SEUIL_BREVET) {
-                setBrevetDisponible(true);
-            } else {
-                // Le composant appellera passerTourSuivant après le délai visuel
+                const moyenneCourante = calculerMoyenne(nouveauxTemps);
+                if (
+                    moyenneCourante !== null &&
+                    moyenneCourante <= delaiMaxFluidite
+                ) {
+                    setBrevetDisponible(true);
+                }
             }
         } else {
-            // Mauvaise réponse
-            const nouvellesErreurs = nbErreursTourCourant + 1;
-            setNbErreursTourCourant(nouvellesErreurs);
+            // Mauvaise réponse — réinitialiser la série de temps
+            setNbErreursTourCourant((prev) => prev + 1);
             setScore(0);
+            setTempsParReponse([]);
             setStatut("erreur");
-
-            // Répétition espacée : réinsérer l'item en tête de file
             setFileItems((prev) => [tourCourant.modele, ...prev]);
         }
     };
 
     /**
      * Passe au tour suivant après le délai visuel de succès.
-     * Appelé par le composant depuis un setTimeout.
+     * Appelé depuis App.jsx via setTimeout.
      *
      * @returns {void}
      */
@@ -196,7 +213,6 @@ export function useGameEngine(config) {
 
     /**
      * Réinitialise le score et génère un nouveau tour.
-     * La configuration (type, nombre de propositions) est conservée.
      *
      * @returns {void}
      */
@@ -212,6 +228,8 @@ export function useGameEngine(config) {
         setStatut("attente");
         setBrevetDisponible(false);
         setNbErreursTourCourant(0);
+        setTempsParReponse([]);
+        debutTour.current = Date.now();
     };
 
     /** @type {GameState} */
@@ -222,6 +240,7 @@ export function useGameEngine(config) {
         statut,
         brevetDisponible,
         nbErreursTourCourant,
+        tempsMoyen,
     };
 
     return {
@@ -229,5 +248,6 @@ export function useGameEngine(config) {
         repondre,
         allerTourSuivant,
         recommencer,
+        demarrerChrono,
     };
 }
