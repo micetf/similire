@@ -6,6 +6,16 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.4.0] - 2026-02-20 — Sprint 3 : Hook useConfig
+
+### Ajouté
+
+- `src/hooks/useConfig.js` — gestion de la configuration enseignant
+    - Initialisation lazy depuis localStorage (sans useEffect)
+    - Persistance de typeUnite et nbPropositions via storage.js
+    - Bornes min/max appliquées sur nbPropositions via constants.js
+    - modeTni et verrouille : états de session uniquement (non persistés)
+
 ## [0.3.0] - 2026-02-19 — Sprint 2 : Utilitaires
 
 ### Ajouté
