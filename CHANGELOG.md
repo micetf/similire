@@ -6,6 +6,21 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.7.0] - 2026-02-20 — Sprint 6 : Panneau de configuration
+
+### Ajouté
+
+- `src/components/config/ConfigPanel.jsx` — panneau de configuration enseignant
+    - Sélecteur de type d'unité (Lettre / Syllabe / Mot)
+    - Compteur de propositions avec bornes min/max désactivant les boutons
+    - Bouton mode TNI avec indicateur visuel
+    - Bouton verrouillage — masque le panneau, seul le cadenas reste visible
+    - Accessibilité : aria-pressed, aria-label, role="group"
+
+### Modifié
+
+- `src/App.jsx` — intégration de ConfigPanel, suppression de la config inline
+
 ## [0.6.0] - 2026-02-20 — Sprint 5 : Composants de jeu
 
 ### Ajouté
