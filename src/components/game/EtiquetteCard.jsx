@@ -1,40 +1,42 @@
 /**
- * Étiquette individuelle cliquable.
- * Gère ses propres états visuels : attente, succès, erreur, guidage.
- * La taille de police s'adapte automatiquement à la longueur du contenu.
+ * Carte étiquette cliquable — brique de base du jeu de discrimination.
+ * Gère ses propres états visuels (repos, survol, succès, erreur, guidage).
+ * Complète les feedbacks couleur par des icônes pour les utilisateurs
+ * daltoniens (deutéranopie rouge-vert).
  *
  * @module components/game/EtiquetteCard
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { Check, X, ArrowRight } from "lucide-react";
 
 /**
- * Calcule les classes de taille de police et largeur minimale
- * selon le nombre de caractères de la valeur affichée.
+ * Calcule les classes de taille de texte et largeur minimale
+ * selon la longueur du contenu et le mode TNI.
  *
- * @param {string}  valeur   - Valeur affichée dans l'étiquette
- * @param {boolean} modeTni  - Mode TNI activé
+ * @param {string}  valeur  - Valeur affichée
+ * @param {boolean} modeTni - Mode TNI activé
  * @returns {{ texte: string, largeur: string }}
  */
 function classesTailleTexte(valeur, modeTni) {
     const n = valeur.length;
 
     if (modeTni) {
-        if (n <= 1) return { texte: "text-6xl", largeur: "min-w-[8rem]" };
-        if (n <= 3) return { texte: "text-5xl", largeur: "min-w-[9rem]" };
-        if (n <= 5) return { texte: "text-4xl", largeur: "min-w-[10rem]" };
-        return { texte: "text-3xl", largeur: "min-w-[11rem]" };
+        if (n <= 1) return { texte: "text-tni-lg", largeur: "min-w-[7rem]" };
+        if (n <= 3) return { texte: "text-tni-md", largeur: "min-w-[8rem]" };
+        if (n <= 5) return { texte: "text-tni-sm", largeur: "min-w-[10rem]" };
+        return { texte: "text-2xl", largeur: "min-w-[12rem]" };
     }
 
-    if (n <= 1) return { texte: "text-4xl", largeur: "min-w-[5rem]" };
-    if (n <= 3) return { texte: "text-3xl", largeur: "min-w-[6rem]" };
-    if (n <= 5) return { texte: "text-2xl", largeur: "min-w-[7rem]" };
-    return { texte: "text-xl", largeur: "min-w-[8rem]" };
+    if (n <= 1) return { texte: "text-4xl", largeur: "min-w-[4rem]" };
+    if (n <= 3) return { texte: "text-2xl", largeur: "min-w-[5rem]" };
+    if (n <= 5) return { texte: "text-xl", largeur: "min-w-[6rem]" };
+    return { texte: "text-base", largeur: "min-w-[7rem]" };
 }
 
 /**
- * Étiquette individuelle cliquable du jeu SiMiLire.
+ * Carte étiquette cliquable avec feedback visuel multicanal.
  *
  * @param {Object}   props
  * @param {string}   props.valeur               - Valeur affichée
@@ -68,13 +70,58 @@ function EtiquetteCard({
     }, [estCliquee, statut]);
 
     const afficherGuidage = estCorrecte && nbErreursTourCourant >= 2;
+    const afficherSucces = statut === "succes" && estCorrecte;
+    const afficherErreur = estCliquee && statut === "erreur";
+
+    // Taille des icônes proportionnelle au mode TNI
+    const tailleIcone = modeTni ? 24 : 16;
+
+    /**
+     * Détermine l'icône de badge à afficher selon l'état de la carte.
+     * Retourne null si aucune icône n'est nécessaire.
+     *
+     * @returns {JSX.Element|null}
+     */
+    function Badge() {
+        if (afficherSucces) {
+            return (
+                <span
+                    aria-hidden="true"
+                    className="absolute top-1 right-1 text-green-700"
+                >
+                    <Check size={tailleIcone} strokeWidth={3} />
+                </span>
+            );
+        }
+        if (afficherErreur) {
+            return (
+                <span
+                    aria-hidden="true"
+                    className="absolute top-1 right-1 text-orange-700"
+                >
+                    <X size={tailleIcone} strokeWidth={3} />
+                </span>
+            );
+        }
+        if (afficherGuidage) {
+            return (
+                <span
+                    aria-hidden="true"
+                    className="absolute top-1 right-1 text-yellow-600"
+                >
+                    <ArrowRight size={tailleIcone} strokeWidth={3} />
+                </span>
+            );
+        }
+        return null;
+    }
 
     const classesCouleur = () => {
-        if (statut === "succes" && estCorrecte)
+        if (afficherSucces)
             return "bg-green-200 border-green-500 text-green-800";
         if (afficherGuidage)
             return "bg-yellow-100 border-yellow-400 text-gray-800";
-        if (estCliquee && statut === "erreur")
+        if (afficherErreur)
             return "bg-orange-100 border-orange-400 text-gray-800";
         return "bg-white border-gray-300 text-gray-800 hover:border-blue-400 hover:bg-blue-50";
     };
@@ -87,6 +134,7 @@ function EtiquetteCard({
             onClick={() => onClic(id)}
             disabled={statut === "succes"}
             className={`
+                relative
                 flex items-center justify-center
                 ${largeur} ${hauteur} px-3
                 font-bold rounded-lg border-2
@@ -97,6 +145,7 @@ function EtiquetteCard({
             `}
         >
             {valeur}
+            <Badge />
         </button>
     );
 }
