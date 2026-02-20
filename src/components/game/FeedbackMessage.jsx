@@ -1,18 +1,20 @@
 /**
  * Message de feedback affiché après une mauvaise réponse.
  * Propose un bouton pour réessayer le même tour.
+ * L'icône complète la couleur pour les utilisateurs daltoniens.
  *
  * @module components/game/FeedbackMessage
  */
 
 import PropTypes from "prop-types";
+import { X } from "lucide-react";
 
 /**
  * Message de feedback en cas d'erreur.
  *
  * @param {Object}   props
  * @param {string}   props.statut      - Statut du tour courant
- * @param {boolean}  props.modeTni    - Mode TNI activé
+ * @param {boolean}  props.modeTni     - Mode TNI activé
  * @param {Function} props.onReessayer - Callback pour réessayer
  * @returns {JSX.Element|null}
  */
@@ -20,10 +22,19 @@ function FeedbackMessage({ statut, modeTni, onReessayer }) {
     if (statut !== "erreur") return null;
 
     const classeTexte = modeTni ? "text-tni-sm" : "text-lg";
+    const tailleIcone = modeTni ? 28 : 20;
 
     return (
         <div className="flex flex-col items-center gap-3">
-            <p className={`font-bold text-orange-600 ${classeTexte}`}>
+            <p
+                className={`flex items-center gap-2 font-bold text-orange-600 ${classeTexte}`}
+            >
+                <X
+                    aria-hidden="true"
+                    size={tailleIcone}
+                    strokeWidth={3}
+                    className="shrink-0"
+                />
                 Essaie encore !
             </p>
             <button

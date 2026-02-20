@@ -6,6 +6,15 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.2.0] - 2026-02-20 — Sprint B : Accessibilité daltonisme
+
+### Ajouté
+
+- `lucide-react` — bibliothèque d'icônes SVG (dépendance de production)
+- `src/components/game/EtiquetteCard.jsx` — badges icônes multicanal :
+  ✓ (succès), ✗ (erreur), → (guidage au 2e échec), tous en `aria-hidden="true"`
+- `src/components/game/FeedbackMessage.jsx` — icône ✗ devant le message d'erreur
+
 ## [1.1.0] - 2026-02-20 — Sprint A : Police d'apprentissage
 
 ### Ajouté
