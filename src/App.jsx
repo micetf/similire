@@ -8,6 +8,8 @@
 import { useState, useCallback } from "react";
 import { useConfig } from "@hooks/useConfig";
 import { useGameEngine } from "@hooks/useGameEngine";
+import Navbar from "@/components/layout/Navbar";
+import NavbarSpacer from "@/components/layout/NavbarSpacer";
 import ConfigPanel from "@/components/config/ConfigPanel";
 import ModelZone from "@/components/game/ModelZone";
 import ProposalGrid from "@/components/game/ProposalGrid";
@@ -45,7 +47,6 @@ function App() {
     const [idClique, setIdClique] = useState(null);
     const [modalBrevetVisible, setModalBrevetVisible] = useState(false);
 
-    // Affiche la modale dès que le brevet est disponible
     const handleBrevetDisponible = useCallback(() => {
         if (brevetDisponible) setModalBrevetVisible(true);
     }, [brevetDisponible]);
@@ -86,53 +87,64 @@ function App() {
     }, [recommencer]);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center gap-6 p-4">
-            {/* Panneau de configuration */}
-            <ConfigPanel
-                config={config}
-                onTypeUnite={setTypeUnite}
-                onNbPropositions={setNbPropositions}
-                onToggleModeTni={toggleModeTni}
-                onToggleVerrouillage={toggleVerrouillage}
-            />
+        <>
+            <Navbar />
+            <NavbarSpacer />
 
-            {/* Zone modèle */}
-            <ModelZone modele={tourCourant.modele} modeTni={config.modeTni} />
+            <main
+                className="min-h-screen bg-gray-50 flex flex-col
+                             items-center gap-6 p-4"
+            >
+                {/* Panneau de configuration */}
+                <ConfigPanel
+                    config={config}
+                    onTypeUnite={setTypeUnite}
+                    onNbPropositions={setNbPropositions}
+                    onToggleModeTni={toggleModeTni}
+                    onToggleVerrouillage={toggleVerrouillage}
+                />
 
-            {/* Grille de propositions */}
-            <ProposalGrid
-                propositions={tourCourant.propositions}
-                idModele={tourCourant.modele.id}
-                idClique={idClique}
-                statut={statut}
-                nbErreursTourCourant={nbErreursTourCourant}
-                modeTni={config.modeTni}
-                onRepondre={handleRepondre}
-            />
+                {/* Zone modèle */}
+                <ModelZone
+                    modele={tourCourant.modele}
+                    modeTni={config.modeTni}
+                />
 
-            {/* Feedback erreur */}
-            <FeedbackMessage
-                statut={statut}
-                modeTni={config.modeTni}
-                onReessayer={handleReessayer}
-            />
+                {/* Grille de propositions */}
+                <ProposalGrid
+                    propositions={tourCourant.propositions}
+                    idModele={tourCourant.modele.id}
+                    idClique={idClique}
+                    statut={statut}
+                    nbErreursTourCourant={nbErreursTourCourant}
+                    modeTni={config.modeTni}
+                    onRepondre={handleRepondre}
+                />
 
-            {/* Indicateur de progression */}
-            <ProgressIndicator
-                score={score}
-                scoreTotal={scoreTotal}
-                typeUnite={config.typeUnite}
-            />
+                {/* Feedback erreur */}
+                <FeedbackMessage
+                    statut={statut}
+                    modeTni={config.modeTni}
+                    onReessayer={handleReessayer}
+                />
 
-            {/* Modale brevet */}
-            <BrevetModal
-                estVisible={modalBrevetVisible}
-                typeUnite={config.typeUnite}
-                nbPropositions={config.nbPropositions}
-                onFermer={handleFermerModal}
-                onRecommencer={handleRecommencer}
-            />
-        </div>
+                {/* Indicateur de progression */}
+                <ProgressIndicator
+                    score={score}
+                    scoreTotal={scoreTotal}
+                    typeUnite={config.typeUnite}
+                />
+
+                {/* Modale brevet */}
+                <BrevetModal
+                    estVisible={modalBrevetVisible}
+                    typeUnite={config.typeUnite}
+                    nbPropositions={config.nbPropositions}
+                    onFermer={handleFermerModal}
+                    onRecommencer={handleRecommencer}
+                />
+            </main>
+        </>
     );
 }
 

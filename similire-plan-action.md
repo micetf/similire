@@ -538,7 +538,7 @@ src/hooks/
 
 ---
 
-## Sprint 8 — Layout et intégration MiCetF
+## Sprint 8 — Layout et intégration MiCetF ✅ TERMINÉ
 
 **Objectif :** habillage MiCetF complet + mise à jour micetf-data.
 **Durée estimée :** 1 session
