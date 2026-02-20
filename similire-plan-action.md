@@ -131,7 +131,7 @@ release:  Tag de version
 
 ---
 
-## Sprint 0 — Initialisation du projet : OK
+## Sprint 0 — Initialisation du projet : ✅ TERMINÉ
 
 **Objectif :** projet fonctionnel, vide, qui compile et passe ESLint.
 **Durée estimée :** 1 session
@@ -217,7 +217,7 @@ git checkout develop
 
 ---
 
-## Sprint 1 — Constantes et données : OK
+## Sprint 1 — Constantes et données : ✅ TERMINÉ
 
 **Objectif :** socle de données complet, typé, importable.
 **Durée estimée :** 1–2 sessions
@@ -274,7 +274,7 @@ pnpm run build   # zéro warning
 
 ---
 
-## Sprint 2 — Utilitaires : OK
+## Sprint 2 — Utilitaires : : ✅ TERMINÉ
 
 **Objectif :** fonctions pures, testables mentalement, sans effet de bord.
 **Durée estimée :** 1 session
@@ -326,7 +326,7 @@ pnpm run build   # zéro warning
 
 ---
 
-## Sprint 3 — Hook `useConfig`
+## Sprint 3 — Hook `useConfig` : : ✅ TERMINÉ
 
 **Objectif :** gestion de la configuration avec persistance localStorage.
 **Durée estimée :** 1 session
@@ -357,7 +357,7 @@ Vérifier dans DevTools → Application → localStorage que `similire_config` s
 
 ---
 
-## Sprint 4 — Hook `useGameEngine`
+## Sprint 4 — Hook `useGameEngine` : : ✅ TERMINÉ
 
 **Objectif :** moteur de jeu complet (génération des tours, scoring, répétition espacée).
 **Durée estimée :** 2 sessions
@@ -399,7 +399,7 @@ Test via `App.jsx` avec affichage brut (pas encore de composants graphiques) :
 
 ---
 
-## Sprint 5 — Composants de jeu
+## Sprint 5 — Composants de jeu : ✅ TERMINÉ
 
 **Objectif :** interface jouable de bout en bout, sans ConfigPanel ni brevet.
 **Durée estimée :** 2–3 sessions
@@ -548,8 +548,8 @@ src/hooks/
 
 ```
 src/components/layout/
-├── Navbar.jsx        ← NOUVEAU (adapté depuis home/src/components/Navbar)
-└── NavbarSpacer.jsx  ← NOUVEAU (copié depuis home/src/components/Navbar)
+├── Navbar.jsx        ← NOUVEAU (converti depuis le HTML de Lecture Flash)
+└── NavbarSpacer.jsx  ← NOUVEAU
 
 public/
 └── favicon.ico       ← NOUVEAU
@@ -560,24 +560,11 @@ public/
 
 ### Points d'attention
 
-- La `Navbar` de SiMiLire est une **copie adaptée** depuis le projet `home` — elle n'est pas importée depuis `micetf-data` (pas de dépendance croisée entre applis)
-- Le titre affiché dans la navbar : `SiMiLire` avec sous-titre `Discrimination visuelle`
-- Miniature `similire.png` (280×210px) à créer et placer dans `micetf-data/public/thumbnails/`
-
-### Validation du sprint 8
-
-- L'application ressemble visuellement aux autres outils MiCetF
-- La navbar pointe correctement vers `micetf.fr`
-- `micetf-data` mis à jour, nouvelle version taguée
-
-**Documents mis à jour :**
-
-- `CHANGELOG.md` — `[0.9.0] - Sprint 8 — Layout et intégration MiCetF`
-- `README.md` — section déploiement complétée
-
----
-
-## Sprint 9 — Build et déploiement OVH
+- La `Navbar` est convertie depuis le HTML existant de Lecture Flash
+  (navbar `fixed`, `bg-gray-800`, logo MiCetF, boutons don/contact, menu mobile)
+- Le titre affiché : `SiMiLire` avec le chevron MiCetF
+- `NavbarSpacer` compense la hauteur `h-14` de la navbar fixed
+- Miniature `similire.png` (280×210px) à créer## Sprint 9 — Build et déploiement OVH
 
 **Objectif :** application en production sur `micetf.fr/similire/`.
 **Durée estimée :** 1 session
