@@ -1,81 +1,82 @@
 /**
  * Hook de gestion de la configuration enseignant.
- * Persiste typeUnite et nbPropositions dans localStorage via storage.js.
- * modeTni et verrouille sont des états de session uniquement (non persistés).
+ *
+ * Responsabilités :
+ * - Stocker l'état de configuration (type d'unité, propositions, mode TNI,
+ *   verrouillage, police d'apprentissage)
+ * - Persister dans localStorage les réglages enseignant
+ * - Exposer des setters atomiques conformes au pattern DRY (écriture directe,
+ *   jamais via useEffect)
+ *
+ * Ce qui est persisté    : typeUnite, nbPropositions, police
+ * Ce qui ne l'est pas    : modeTni, verrouille (état de session uniquement)
  *
  * @module hooks/useConfig
  */
 
 import { useState } from "react";
-import { NB_PROPOSITIONS_MIN, NB_PROPOSITIONS_MAX } from "@constants";
+import {
+    NB_PROPOSITIONS_MIN,
+    NB_PROPOSITIONS_MAX,
+    POLICES_DISPONIBLES,
+} from "@constants";
 import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
 
 /**
- * @typedef {Object} Config
- * @property {string}  typeUnite      - Type d'unité linguistique sélectionné
- * @property {number}  nbPropositions - Nombre d'étiquettes proposées (2–8)
- * @property {boolean} modeTni        - Mode TNI activé (non persisté)
- * @property {boolean} verrouille     - Configuration verrouillée (non persisté)
+ * @typedef {'lettre' | 'syllabe' | 'mot'} TypeUnite
  */
 
 /**
- * @typedef {Object} UseConfigReturn
- * @property {Config}   config                - Configuration courante
- * @property {Function} setTypeUnite          - Change le type d'unité
- * @property {Function} setNbPropositions     - Change le nombre de propositions
- * @property {Function} toggleModeTni         - Bascule le mode TNI
- * @property {Function} toggleVerrouillage    - Bascule le verrouillage
+ * @typedef {Object} Config
+ * @property {TypeUnite} typeUnite      - Type d'unité linguistique sélectionné
+ * @property {number}    nbPropositions - Nombre d'étiquettes proposées (2–8)
+ * @property {boolean}   modeTni        - Mode TNI activé (non persisté)
+ * @property {boolean}   verrouille     - Configuration verrouillée (non persisté)
+ * @property {string}    police         - Identifiant de la police d'apprentissage
  */
 
 /**
  * Hook de gestion de la configuration enseignant.
- * Initialisation lazy depuis localStorage — aucun useEffect.
+ * Instancier une seule fois dans App.jsx et distribuer la config par props.
  *
- * @returns {UseConfigReturn}
+ * @returns {{
+ *   config: Config,
+ *   setTypeUnite: function(TypeUnite): void,
+ *   setNbPropositions: function(number): void,
+ *   toggleModeTni: function(): void,
+ *   toggleVerrouillage: function(): void,
+ *   setPolice: function(string): void,
+ * }}
  */
 export function useConfig() {
-    const [config, setConfig] = useState(() => ({
-        ...loadConfigFromStorage(),
-        modeTni: false,
-        verrouille: false,
-    }));
+    const [config, setConfig] = useState(() => loadConfigFromStorage());
 
     /**
-     * Change le type d'unité et persiste le changement.
-     *
-     * @param {string} typeUnite - Nouveau type d'unité
-     * @returns {void}
+     * Change le type d'unité linguistique et persiste le choix.
+     * @param {TypeUnite} type
      */
-    const setTypeUnite = (typeUnite) => {
-        const next = { ...config, typeUnite };
+    const setTypeUnite = (type) => {
+        const next = { ...config, typeUnite: type };
         setConfig(next);
-        saveConfigToStorage({ typeUnite, nbPropositions: next.nbPropositions });
+        saveConfigToStorage(next);
     };
 
     /**
-     * Change le nombre de propositions en respectant les bornes,
-     * et persiste le changement.
-     *
-     * @param {number} nbPropositions - Nouveau nombre de propositions
-     * @returns {void}
+     * Change le nombre de propositions (clamé entre MIN et MAX) et persiste.
+     * @param {number} nb
      */
-    const setNbPropositions = (nbPropositions) => {
-        const valeur = Math.min(
-            NB_PROPOSITIONS_MAX,
-            Math.max(NB_PROPOSITIONS_MIN, nbPropositions)
+    const setNbPropositions = (nb) => {
+        const clamped = Math.max(
+            NB_PROPOSITIONS_MIN,
+            Math.min(NB_PROPOSITIONS_MAX, nb)
         );
-        const next = { ...config, nbPropositions: valeur };
+        const next = { ...config, nbPropositions: clamped };
         setConfig(next);
-        saveConfigToStorage({
-            typeUnite: next.typeUnite,
-            nbPropositions: valeur,
-        });
+        saveConfigToStorage(next);
     };
 
     /**
-     * Bascule le mode TNI (non persisté).
-     *
-     * @returns {void}
+     * Bascule le mode TNI (non persisté — état de session uniquement).
      */
     const toggleModeTni = () => {
         setConfig((prev) => ({ ...prev, modeTni: !prev.modeTni }));
@@ -83,11 +84,22 @@ export function useConfig() {
 
     /**
      * Bascule le verrouillage de la configuration (non persisté).
-     *
-     * @returns {void}
      */
     const toggleVerrouillage = () => {
         setConfig((prev) => ({ ...prev, verrouille: !prev.verrouille }));
+    };
+
+    /**
+     * Change la police d'apprentissage et persiste le choix.
+     * La valeur doit être une clé de POLICES_DISPONIBLES.
+     *
+     * @param {string} idPolice - Clé dans POLICES_DISPONIBLES
+     */
+    const setPolice = (idPolice) => {
+        if (!POLICES_DISPONIBLES[idPolice]) return;
+        const next = { ...config, police: idPolice };
+        setConfig(next);
+        saveConfigToStorage(next);
     };
 
     return {
@@ -96,5 +108,6 @@ export function useConfig() {
         setNbPropositions,
         toggleModeTni,
         toggleVerrouillage,
+        setPolice,
     };
 }

@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
             alias: {
                 "@": resolve(__dirname, "./src"),
                 "@data": resolve(__dirname, "./src/data"),
+                "@components": resolve(__dirname, "./src/components"),
                 "@hooks": resolve(__dirname, "./src/hooks"),
                 "@utils": resolve(__dirname, "./src/utils"),
                 "@constants": resolve(__dirname, "./src/constants.js"),
