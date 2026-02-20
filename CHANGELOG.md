@@ -6,6 +6,20 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.9.0] - 2026-02-20 — Sprint 8 : Layout et intégration MiCetF
+
+### Ajouté
+
+- `src/components/layout/Navbar.jsx` — navbar fixe MiCetF convertie depuis
+  Lecture Flash (logo, titre SiMiLire, don PayPal, contact, menu mobile)
+- `src/components/layout/NavbarSpacer.jsx` — espaceur h-14 compensant
+  la navbar fixe
+
+### Modifié
+
+- `src/App.jsx` — intégration Navbar + NavbarSpacer, conteneur principal
+  en balise <main> sémantique
+
 ## [0.8.0] - 2026-02-20 — Sprint 7 : Progression et brevet
 
 ### Ajouté
