@@ -6,6 +6,24 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.8.0] - 2026-02-20 — Sprint 7 : Progression et brevet
+
+### Ajouté
+
+- `src/components/progress/ProgressIndicator.jsx` — indicateur de progression
+  adaptatif selon le type d'unité :
+    - lettre → étoiles (GS/CP)
+    - syllabe → barre de progression (CP/CE1)
+    - mot → score numérique série + total (CE1/CE2)
+- `src/hooks/useBrevet.js` — génération Canvas du brevet PNG
+- `src/components/brevet/BrevetModal.jsx` — modale brevet avec aperçu temps réel,
+  champ prénom, téléchargement PNG et recommencement
+
+### Modifié
+
+- `src/App.jsx` — intégration ProgressIndicator et BrevetModal,
+  gestion de l'état modalBrevetVisible
+
 ## [0.7.0] - 2026-02-20 — Sprint 6 : Panneau de configuration
 
 ### Ajouté

@@ -482,7 +482,7 @@ src/components/config/
 
 ---
 
-## Sprint 7 — Progression et brevet
+## Sprint 7 — Progression et brevet ✅ TERMINÉ
 
 **Objectif :** indicateur de progression + génération du brevet PNG.
 **Durée estimée :** 2 sessions
