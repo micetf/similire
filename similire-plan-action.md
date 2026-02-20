@@ -570,6 +570,12 @@ public/
 **Durée estimée :** 1 session
 **Branche :** `feat/sprint-09-deploiement`
 
+## Fix post-sprints
+
+## fix/etiquette-ui — débordement texte + centrage ProposalGrid : ✅ CORRIGÉ
+
+## Sprint 9 — Déploiement OVH : ✅ TERMINÉ
+
 ### 9.1 Build de production
 
 ```bash
