@@ -14,6 +14,7 @@ import {
     NB_PROPOSITIONS_MAX,
     POLICES_DISPONIBLES,
     DELAIS_FLUIDITE,
+    SEUIL_BREVET,
 } from "@constants";
 
 // ─── Icônes ──────────────────────────────────────────────────────────────────
@@ -237,30 +238,33 @@ function ConfigPanel({
                     aria-hidden="true"
                 />
 
-                {/* Sélecteur seuil de fluidité */}
+                {/* Sélecteur seuil de fluidité — libellé en secondes totales pour 10 réponses */}
                 <div
                     className="flex rounded-lg border border-gray-300 overflow-hidden"
                     role="group"
-                    aria-label="Seuil de fluidité"
+                    aria-label="Seuil de fluidité pour 10 réponses"
                 >
-                    {DELAIS_FLUIDITE.map((delai) => (
-                        <button
-                            key={delai}
-                            onClick={() => onDelaiMaxFluidite(delai)}
-                            className={`
-                px-3 py-2 text-sm font-medium transition-colors
-                ${
-                    delaiMaxFluidite === delai
-                        ? "bg-blue-600 text-white"
-                        : "bg-white text-gray-600 hover:bg-gray-50"
-                }
-            `}
-                            aria-pressed={delaiMaxFluidite === delai}
-                            title={`Seuil de fluidité : ${delai / 1000} secondes`}
-                        >
-                            {delai / 1000}s
-                        </button>
-                    ))}
+                    {DELAIS_FLUIDITE.map((delai) => {
+                        const secondesTotales = (delai / 1000) * SEUIL_BREVET;
+                        return (
+                            <button
+                                key={delai}
+                                onClick={() => onDelaiMaxFluidite(delai)}
+                                className={`
+                    px-3 py-2 text-sm font-medium transition-colors
+                    ${
+                        delaiMaxFluidite === delai
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-50"
+                    }
+                `}
+                                aria-pressed={delaiMaxFluidite === delai}
+                                title={`10 réponses en moins de ${secondesTotales}s`}
+                            >
+                                {secondesTotales}s
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Bouton mode TNI */}
