@@ -59,7 +59,7 @@ src/App.jsx               ← application de la police au conteneur principal
 
 ---
 
-## Sprint B — Accessibilité daltonisme 🔴 P1
+## Sprint B — Accessibilité daltonisme 🔴 P1 ✅ TERMINÉ
 
 **Objectif :** Rendre les feedbacks perceptibles sans distinction des couleurs  
 **Durée estimée :** 1 session  
