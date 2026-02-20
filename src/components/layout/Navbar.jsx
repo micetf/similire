@@ -6,6 +6,7 @@
  * @module components/layout/Navbar
  */
 
+import PropTypes from "prop-types";
 import { useState, useCallback } from "react";
 
 /**
@@ -13,7 +14,7 @@ import { useState, useCallback } from "react";
  *
  * @returns {JSX.Element}
  */
-function Navbar() {
+function Navbar({ onAide }) {
     const [menuOuvert, setMenuOuvert] = useState(false);
 
     const handleContact = useCallback(() => {
@@ -99,6 +100,30 @@ function Navbar() {
 
                         {/* Actions */}
                         <ul className="flex items-center space-x-2">
+                            {/* Bouton aide */}
+                            <li>
+                                <button
+                                    type="button"
+                                    onClick={onAide}
+                                    title="Aide pédagogique"
+                                    className="flex items-center justify-center w-9 h-9
+                   bg-blue-600 text-white 
+                    rounded-full 
+                    hover:bg-blue-700 
+                    transition-colors duration-200
+                    font-bold text-lg
+                    focus:outline-none 
+                    focus:ring-2 
+                    focus:ring-blue-500 
+                    focus:ring-offset-2
+                    shadow-md
+                    hover:shadow-lg"
+                                    aria-label="Ouvrir l'aide pédagogique"
+                                >
+                                    ?
+                                </button>
+                            </li>
+
                             {/* Don PayPal */}
                             <li>
                                 <form
@@ -183,7 +208,16 @@ function Navbar() {
                             </svg>
                             SiMiLire
                         </div>
-
+                        <button
+                            type="button"
+                            onClick={onAide}
+                            className="flex items-center gap-2 px-3 py-2
+               bg-gray-600 hover:bg-gray-500
+               text-white rounded transition-colors"
+                        >
+                            <span className="font-bold text-sm">?</span>
+                            <span className="text-sm">Aide</span>
+                        </button>
                         <div className="flex gap-2 px-2">
                             {/* Don PayPal mobile */}
                             <form
@@ -249,5 +283,9 @@ function Navbar() {
         </nav>
     );
 }
+
+Navbar.propTypes = {
+    onAide: PropTypes.func.isRequired,
+};
 
 export default Navbar;

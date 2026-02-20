@@ -16,6 +16,8 @@ import ProposalGrid from "@/components/game/ProposalGrid";
 import FeedbackMessage from "@/components/game/FeedbackMessage";
 import ProgressIndicator from "@/components/progress/ProgressIndicator";
 import BrevetModal from "@/components/brevet/BrevetModal";
+import HelpModal from "@/components/help/HelpModal";
+import { hasAideVue, markAideVue } from "@utils/storage";
 import { DELAI_SUCCES_MS, POLICES_DISPONIBLES } from "@constants";
 
 /**
@@ -54,7 +56,9 @@ function App() {
 
     const [idClique, setIdClique] = useState(null);
     const [modalBrevetVisible, setModalBrevetVisible] = useState(false);
-
+    const [modalAideVisible, setModalAideVisible] = useState(
+        () => !hasAideVue() // true si première visite
+    );
     const handleBrevetDisponible = useCallback(() => {
         if (brevetDisponible) setModalBrevetVisible(true);
     }, [brevetDisponible]);
@@ -95,6 +99,15 @@ function App() {
         recommencer();
     }, [recommencer]);
 
+    const handleOuvrirAide = useCallback(() => {
+        setModalAideVisible(true);
+    }, []);
+
+    const handleFermerAide = useCallback(() => {
+        markAideVue();
+        setModalAideVisible(false);
+    }, []);
+
     const stylePolice = {
         "--font-jeu":
             POLICES_DISPONIBLES[config.police]?.fontFamily ??
@@ -103,7 +116,7 @@ function App() {
 
     return (
         <>
-            <Navbar />
+            <Navbar onAide={handleOuvrirAide} />
             <NavbarSpacer />
 
             <main
@@ -165,6 +178,10 @@ function App() {
                     onRecommencer={handleRecommencer}
                 />
             </main>
+            <HelpModal
+                estVisible={modalAideVisible}
+                onFermer={handleFermerAide}
+            />
         </>
     );
 }
