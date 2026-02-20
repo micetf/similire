@@ -131,7 +131,7 @@ release:  Tag de version
 
 ---
 
-## Sprint 0 — Initialisation du projet
+## Sprint 0 — Initialisation du projet : OK
 
 **Objectif :** projet fonctionnel, vide, qui compile et passe ESLint.
 **Durée estimée :** 1 session
@@ -217,7 +217,7 @@ git checkout develop
 
 ---
 
-## Sprint 1 — Constantes et données
+## Sprint 1 — Constantes et données : OK
 
 **Objectif :** socle de données complet, typé, importable.
 **Durée estimée :** 1–2 sessions
@@ -274,7 +274,7 @@ pnpm run build   # zéro warning
 
 ---
 
-## Sprint 2 — Utilitaires
+## Sprint 2 — Utilitaires : OK
 
 **Objectif :** fonctions pures, testables mentalement, sans effet de bord.
 **Durée estimée :** 1 session
