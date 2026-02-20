@@ -6,6 +6,20 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.6.0] - 2026-02-20 — Sprint 5 : Composants de jeu
+
+### Ajouté
+
+- `src/components/game/EtiquetteCard.jsx` — étiquette cliquable avec états visuels
+  (attente, succès vert, erreur orange + animation shake, guidage jaune au 2e échec)
+- `src/components/game/ProposalGrid.jsx` — grille responsive des propositions
+- `src/components/game/ModelZone.jsx` — zone d'affichage du modèle
+- `src/components/game/FeedbackMessage.jsx` — message d'erreur + bouton Réessayer
+
+### Modifié
+
+- `src/App.jsx` — intégration des composants de jeu, gestion de idClique
+
 ## [0.5.0] - 2026-02-20 — Sprint 4 : Hook useGameEngine
 
 ### Ajouté
