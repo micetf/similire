@@ -6,6 +6,17 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.1.0] - 2026-02-20 — Sprint A : Police d'apprentissage
+
+### Ajouté
+
+- `src/constants.js` — constantes `POLICES_DISPONIBLES` et `POLICE_DEFAUT`
+- `src/utils/storage.js` — persistance du champ `police` dans localStorage
+- `src/hooks/useConfig.js` — champ `police` + setter `setPolice`
+- `src/components/config/ConfigPanel.jsx` — sélecteur de police Aa
+- `index.html` + `src/index.css` — chargement des polices Andika, Atkinson Hyperlegible, OpenDyslexic
+- `src/App.jsx` — application de la police via CSS custom property `--font-jeu`
+
 ## [1.0.1] - 2026-02-20 — Fix corpus
 
 ### Corrigé

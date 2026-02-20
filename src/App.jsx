@@ -16,7 +16,7 @@ import ProposalGrid from "@/components/game/ProposalGrid";
 import FeedbackMessage from "@/components/game/FeedbackMessage";
 import ProgressIndicator from "@/components/progress/ProgressIndicator";
 import BrevetModal from "@/components/brevet/BrevetModal";
-import { DELAI_SUCCES_MS } from "@constants";
+import { DELAI_SUCCES_MS, POLICES_DISPONIBLES } from "@constants";
 
 /**
  * Composant racine de SiMiLire.
@@ -30,6 +30,7 @@ function App() {
         setNbPropositions,
         toggleModeTni,
         toggleVerrouillage,
+        setPolice,
     } = useConfig();
 
     const { gameState, repondre, allerTourSuivant, recommencer } =
@@ -86,14 +87,21 @@ function App() {
         recommencer();
     }, [recommencer]);
 
+    const stylePolice = {
+        "--font-jeu":
+            POLICES_DISPONIBLES[config.police]?.fontFamily ??
+            "system-ui, -apple-system, sans-serif",
+    };
+
     return (
         <>
             <Navbar />
             <NavbarSpacer />
 
             <main
-                className="min-h-screen bg-gray-50 flex flex-col
+                className="zone-jeu min-h-screen bg-gray-50 flex flex-col
                              items-center gap-6 p-4"
+                style={stylePolice}
             >
                 {/* Panneau de configuration */}
                 <ConfigPanel
@@ -102,6 +110,7 @@ function App() {
                     onNbPropositions={setNbPropositions}
                     onToggleModeTni={toggleModeTni}
                     onToggleVerrouillage={toggleVerrouillage}
+                    onPolice={setPolice}
                 />
 
                 {/* Zone modèle */}

@@ -1,7 +1,7 @@
 /**
  * Panneau de configuration enseignant.
  * Permet de régler le type d'unité, le nombre de propositions,
- * le mode TNI et le verrouillage de la configuration.
+ * le mode TNI, le verrouillage et la police d'apprentissage.
  *
  * @module components/config/ConfigPanel
  */
@@ -12,7 +12,10 @@ import {
     LABELS_TYPES_UNITE,
     NB_PROPOSITIONS_MIN,
     NB_PROPOSITIONS_MAX,
+    POLICES_DISPONIBLES,
 } from "@constants";
+
+// ─── Icônes ──────────────────────────────────────────────────────────────────
 
 /**
  * Icône cadenas — verrouillé.
@@ -78,6 +81,21 @@ function IconeEcran() {
 }
 
 /**
+ * Indicateur visuel du sélecteur de police — texte "Aa".
+ * Plus explicite qu'une icône abstraite pour un réglage typographique.
+ * @returns {JSX.Element}
+ */
+function LabelPolice() {
+    return (
+        <span className="text-sm font-semibold text-gray-500 select-none">
+            Aa
+        </span>
+    );
+}
+
+// ─── Composant ───────────────────────────────────────────────────────────────
+
+/**
  * Panneau de configuration enseignant.
  *
  * @param {Object}   props
@@ -86,6 +104,7 @@ function IconeEcran() {
  * @param {Function} props.onNbPropositions     - Change le nombre de propositions
  * @param {Function} props.onToggleModeTni      - Bascule le mode TNI
  * @param {Function} props.onToggleVerrouillage - Bascule le verrouillage
+ * @param {Function} props.onPolice             - Change la police d'apprentissage
  * @returns {JSX.Element}
  */
 function ConfigPanel({
@@ -94,8 +113,9 @@ function ConfigPanel({
     onNbPropositions,
     onToggleModeTni,
     onToggleVerrouillage,
+    onPolice,
 }) {
-    const { typeUnite, nbPropositions, modeTni, verrouille } = config;
+    const { typeUnite, nbPropositions, modeTni, verrouille, police } = config;
 
     // En mode verrouillé, seul le bouton de déverrouillage est visible
     if (verrouille) {
@@ -144,42 +164,76 @@ function ConfigPanel({
                 {/* Compteur de propositions */}
                 <div
                     className="flex items-center rounded-lg border border-gray-300 overflow-hidden"
+                    role="group"
                     aria-label="Nombre de propositions"
                 >
                     <button
                         onClick={() => onNbPropositions(nbPropositions - 1)}
                         disabled={nbPropositions <= NB_PROPOSITIONS_MIN}
-                        className="px-3 py-2 text-gray-700 hover:bg-gray-50
-                                   disabled:opacity-40 disabled:cursor-not-allowed
-                                   transition-colors font-bold text-lg"
+                        className="px-3 py-2 bg-white text-gray-700 hover:bg-gray-50
+                                   disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                         aria-label="Diminuer le nombre de propositions"
                     >
                         −
                     </button>
-                    <span className="px-4 py-2 text-sm font-bold text-gray-800 min-w-[3rem] text-center">
+                    <span
+                        className="px-3 py-2 text-sm font-semibold text-gray-800 bg-white min-w-[2.5rem] text-center"
+                        aria-live="polite"
+                        aria-label={`${nbPropositions} propositions`}
+                    >
                         {nbPropositions}
                     </span>
                     <button
                         onClick={() => onNbPropositions(nbPropositions + 1)}
                         disabled={nbPropositions >= NB_PROPOSITIONS_MAX}
-                        className="px-3 py-2 text-gray-700 hover:bg-gray-50
-                                   disabled:opacity-40 disabled:cursor-not-allowed
-                                   transition-colors font-bold text-lg"
+                        className="px-3 py-2 bg-white text-gray-700 hover:bg-gray-50
+                                   disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                         aria-label="Augmenter le nombre de propositions"
                     >
                         +
                     </button>
                 </div>
 
-                {/* Séparateur */}
-                <div className="h-8 w-px bg-gray-300 hidden sm:block" />
+                {/* Sélecteur de police d'apprentissage */}
+                <div
+                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 bg-white"
+                    role="group"
+                    aria-label="Police d'apprentissage"
+                >
+                    <LabelPolice />
+                    <select
+                        value={police}
+                        onChange={(e) => onPolice(e.target.value)}
+                        className="text-sm text-gray-700 bg-transparent border-none outline-none
+                                   cursor-pointer pr-1"
+                        aria-label="Choisir la police d'apprentissage"
+                        title={
+                            POLICES_DISPONIBLES[police]?.info ??
+                            "Police d'apprentissage"
+                        }
+                    >
+                        {Object.entries(POLICES_DISPONIBLES).map(
+                            ([id, def]) => (
+                                <option key={id} value={id}>
+                                    {def.label}
+                                </option>
+                            )
+                        )}
+                    </select>
+                </div>
+
+                {/* Séparateur visuel */}
+                <div
+                    className="h-8 w-px bg-gray-200 hidden sm:block"
+                    aria-hidden="true"
+                />
 
                 {/* Bouton mode TNI */}
                 <button
                     onClick={onToggleModeTni}
                     className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg
-                        text-sm font-medium transition-colors border
+                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                        border transition-colors
                         ${
                             modeTni
                                 ? "bg-indigo-600 text-white border-indigo-600"
@@ -187,24 +241,22 @@ function ConfigPanel({
                         }
                     `}
                     aria-pressed={modeTni}
-                    title="Mode Tableau Numérique Interactif"
+                    title="Agrandir pour le tableau numérique interactif"
                 >
                     <IconeEcran />
-                    <span className="hidden sm:inline">TNI</span>
+                    <span>TNI</span>
                 </button>
 
                 {/* Bouton verrouillage */}
                 <button
                     onClick={onToggleVerrouillage}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg
-                               text-sm font-medium border border-gray-300
-                               bg-white text-gray-700 hover:bg-gray-50
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                               bg-white text-gray-700 border border-gray-300 hover:bg-gray-50
                                transition-colors"
-                    title="Verrouiller la configuration"
+                    title="Verrouiller la configuration (masquer ce panneau)"
                     aria-label="Verrouiller la configuration"
                 >
                     <IconeCadenasOuvert />
-                    <span className="hidden sm:inline">Verrouiller</span>
                 </button>
             </div>
         </div>
@@ -217,11 +269,13 @@ ConfigPanel.propTypes = {
         nbPropositions: PropTypes.number.isRequired,
         modeTni: PropTypes.bool.isRequired,
         verrouille: PropTypes.bool.isRequired,
+        police: PropTypes.string.isRequired,
     }).isRequired,
     onTypeUnite: PropTypes.func.isRequired,
     onNbPropositions: PropTypes.func.isRequired,
     onToggleModeTni: PropTypes.func.isRequired,
     onToggleVerrouillage: PropTypes.func.isRequired,
+    onPolice: PropTypes.func.isRequired,
 };
 
 export default ConfigPanel;
