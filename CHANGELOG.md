@@ -6,6 +6,17 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.0.0] - 2026-02-20 — Sprint 9 : Déploiement production
+
+### Déployé
+
+- Production : https://micetf.fr/similire/
+- Déploiement via FileZilla (FTP) sur hébergement OVH
+- Build Vite avec base `/similire/` — chemins assets corrects
+- localStorage opérationnel en production
+- Brevet PNG téléchargeable — validé desktop et mobile
+- Navbar MiCetF — liens et boutons fonctionnels en production
+
 ## [0.9.1] - 2026-02-20 — Fix UI étiquettes
 
 ### Corrigé
