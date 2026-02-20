@@ -31,6 +31,7 @@ export const DUREE_GUIDAGE_MS = 1000;
 export const CLES_STORAGE = {
     CONFIG: "similire_config",
     AIDE_VUE: "similire_aide_vue",
+    BILAN: "similire_bilan",
 };
 
 // ─── Types d'unités ───────────────────────────────────────────────────────────
