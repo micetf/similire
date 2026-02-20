@@ -6,6 +6,19 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.0.1] - 2026-02-20 — Fix corpus
+
+### Corrigé
+
+- `src/data/lettres.js` — 26 lettres scriptes minuscules, distracteurs
+  qualifiés par famille de confusion (b/d/p/q, n/u/m/w, i/l/j/t,
+  rondes, fourches, angulaires)
+- `src/data/syllabes.js` — 50 syllabes, familles de confusion couvertes
+  (attaque b/d/p, nasales, miroirs, voyelles composées, graphèmes complexes)
+- `src/data/mots.js` — liste de fréquence CP→CM2, familles de confusion
+  (miroirs, rimes, mots outils, morphologie proche)
+- Auto-distracteurs corrigés : oin (syllabes), dont (mots)
+
 ## [1.0.0] - 2026-02-20 — Sprint 9 : Déploiement production
 
 ### Déployé
