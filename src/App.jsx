@@ -12,6 +12,8 @@ import ConfigPanel from "@/components/config/ConfigPanel";
 import ModelZone from "@/components/game/ModelZone";
 import ProposalGrid from "@/components/game/ProposalGrid";
 import FeedbackMessage from "@/components/game/FeedbackMessage";
+import ProgressIndicator from "@/components/progress/ProgressIndicator";
+import BrevetModal from "@/components/brevet/BrevetModal";
 import { DELAI_SUCCES_MS } from "@constants";
 
 /**
@@ -34,12 +36,19 @@ function App() {
     const {
         tourCourant,
         score,
+        scoreTotal,
         statut,
         brevetDisponible,
         nbErreursTourCourant,
     } = gameState;
 
     const [idClique, setIdClique] = useState(null);
+    const [modalBrevetVisible, setModalBrevetVisible] = useState(false);
+
+    // Affiche la modale dès que le brevet est disponible
+    const handleBrevetDisponible = useCallback(() => {
+        if (brevetDisponible) setModalBrevetVisible(true);
+    }, [brevetDisponible]);
 
     const handleRepondre = useCallback(
         (id) => {
@@ -50,15 +59,31 @@ function App() {
                 setTimeout(() => {
                     setIdClique(null);
                     allerTourSuivant();
+                    handleBrevetDisponible();
                 }, DELAI_SUCCES_MS);
             }
         },
-        [statut, repondre, allerTourSuivant, tourCourant.modele.id]
+        [
+            statut,
+            repondre,
+            allerTourSuivant,
+            tourCourant.modele.id,
+            handleBrevetDisponible,
+        ]
     );
 
     const handleReessayer = useCallback(() => {
         setIdClique(null);
     }, []);
+
+    const handleFermerModal = useCallback(() => {
+        setModalBrevetVisible(false);
+    }, []);
+
+    const handleRecommencer = useCallback(() => {
+        setModalBrevetVisible(false);
+        recommencer();
+    }, [recommencer]);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center gap-6 p-4">
@@ -70,12 +95,6 @@ function App() {
                 onToggleModeTni={toggleModeTni}
                 onToggleVerrouillage={toggleVerrouillage}
             />
-
-            {/* Score */}
-            <p className="text-sm text-gray-500">
-                Réussites consécutives :{" "}
-                <strong className="text-gray-800">{score}</strong>
-            </p>
 
             {/* Zone modèle */}
             <ModelZone modele={tourCourant.modele} modeTni={config.modeTni} />
@@ -98,21 +117,21 @@ function App() {
                 onReessayer={handleReessayer}
             />
 
-            {/* Brevet disponible — sera remplacé par BrevetModal au sprint 7 */}
-            {brevetDisponible && (
-                <div className="bg-green-100 border border-green-500 rounded-xl p-6 text-center space-y-3">
-                    <p className="text-xl font-bold text-green-800">
-                        Bravo ! Brevet disponible !
-                    </p>
-                    <button
-                        onClick={recommencer}
-                        className="px-6 py-2 bg-green-600 hover:bg-green-700
-                                   text-white font-bold rounded-lg transition-colors"
-                    >
-                        Recommencer
-                    </button>
-                </div>
-            )}
+            {/* Indicateur de progression */}
+            <ProgressIndicator
+                score={score}
+                scoreTotal={scoreTotal}
+                typeUnite={config.typeUnite}
+            />
+
+            {/* Modale brevet */}
+            <BrevetModal
+                estVisible={modalBrevetVisible}
+                typeUnite={config.typeUnite}
+                nbPropositions={config.nbPropositions}
+                onFermer={handleFermerModal}
+                onRecommencer={handleRecommencer}
+            />
         </div>
     );
 }
