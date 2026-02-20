@@ -1,7 +1,7 @@
 /**
  * Hook moteur de jeu SiMiLire.
  * Génère les tours, traite les réponses, mesure la fluidité,
- * gère le score et la répétition espacée.
+ * gère le score et le retour sur les items échoués.
  *
  * @module hooks/useGameEngine
  */
@@ -23,13 +23,14 @@ import { SEUIL_BREVET } from "@constants";
 
 /**
  * @typedef {Object} GameState
- * @property {Tour}       tourCourant          - Tour en cours
- * @property {number}     score                - Réussites consécutives
- * @property {number}     scoreTotal           - Réussites totales sur la session
- * @property {StatutTour} statut               - Statut du tour courant
- * @property {boolean}    brevetDisponible     - Critères fiabilité + fluidité atteints
- * @property {number}     nbErreursTourCourant - Erreurs sur le tour actuel
- * @property {number|null} tempsMoyen          - Temps moyen par réponse correcte (ms), null si pas de données
+ * @property {Tour}        tourCourant          - Tour en cours
+ * @property {number}      score                - Réussites consécutives
+ * @property {number}      scoreTotal           - Réussites totales sur la session
+ * @property {StatutTour}  statut               - Statut du tour courant
+ * @property {boolean}     brevetDisponible     - Critères fiabilité + fluidité atteints
+ * @property {number}      nbErreursTourCourant - Erreurs sur le tour actuel
+ * @property {number|null} tempsMoyen           - Temps moyen des SEUIL_BREVET dernières
+ *                                               réponses correctes (ms), null si série vide
  */
 
 /**
@@ -84,8 +85,8 @@ function calculerMoyenne(valeurs) {
  * @returns {{
  *   gameState: GameState,
  *   repondre: function(string): void,
- *   allerTourSuivant: function(): void,
- *   recommencer: function(): void,
+ *   allerTourSuivant: function(function=): void,
+ *   recommencer: function(function=): void,
  *   demarrerChrono: function(): void,
  * }}
  */
@@ -106,10 +107,13 @@ export function useGameEngine(config) {
     const [brevetDisponible, setBrevetDisponible] = useState(false);
     const [nbErreursTourCourant, setNbErreursTourCourant] = useState(0);
 
-    /** Tableau des durées (ms) des réponses correctes de la série en cours */
+    /**
+     * Tableau des durées (ms) des réponses correctes de la série consécutive en cours.
+     * Remis à zéro à chaque erreur — reflète uniquement la série courante.
+     */
     const [tempsParReponse, setTempsParReponse] = useState([]);
 
-    /** Timestamp de début du tour courant — mis à jour par demarrerChrono */
+    /** Timestamp de début du tour courant */
     const debutTour = useRef(Date.now());
 
     /**
@@ -122,10 +126,14 @@ export function useGameEngine(config) {
         debutTour.current = Date.now();
     }, []);
 
-    /** Temps moyen par réponse correcte sur la série courante (ms), null si aucune donnée */
-    const tempsMoyen = calculerMoyenne(tempsParReponse);
+    /**
+     * Temps moyen des SEUIL_BREVET dernières réponses correctes (ms).
+     * Null si la série courante est vide.
+     */
+    const tempsMoyen = calculerMoyenne(tempsParReponse.slice(-SEUIL_BREVET));
 
-    // Réinitialise le jeu au changement de type d'unité ou de nombre de propositions
+    // Réinitialise le jeu au changement de type d'unité ou de nombre de propositions.
+    // Cas légitime de useEffect : réaction à un changement de configuration externe.
     useEffect(() => {
         const items = corpus[typeUnite];
         const nouvelleFile = melangerTableau(items);
@@ -143,11 +151,13 @@ export function useGameEngine(config) {
 
     /**
      * Génère le tour suivant depuis la file.
+     * Notifie l'appelant de l'id du nouvel item via callback optionnel.
      *
-     * @param {Object[]} file - File d'items courante
+     * @param {Object[]}          file         - File d'items courante
+     * @param {function(string)=} onNouveauTour - Callback reçevant l'id du prochain modèle
      * @returns {void}
      */
-    const passerTourSuivant = (file) => {
+    const passerTourSuivant = (file, onNouveauTour) => {
         const nouvelleFile =
             file.length > 0 ? file : melangerTableau(itemsDisponibles);
         const [prochain, ...reste] = nouvelleFile;
@@ -157,11 +167,14 @@ export function useGameEngine(config) {
         );
         setStatut("attente");
         setNbErreursTourCourant(0);
+        onNouveauTour?.(prochain.id);
     };
 
     /**
      * Traite la réponse de l'élève.
-     * Mesure le temps écoulé depuis le dernier demarrerChrono().
+     * Mesure le temps depuis le dernier demarrerChrono().
+     * Sur bonne réponse : vérifie le critère brevet (fiabilité + fluidité).
+     * Sur mauvaise réponse : remet la série à zéro et réinsère l'item en file.
      *
      * @param {string} idClique - Identifiant de l'étiquette cliquée
      * @returns {void}
@@ -181,21 +194,22 @@ export function useGameEngine(config) {
             setScoreTotal(nouveauScoreTotal);
             setStatut("succes");
 
-            // Critère brevet : fiabilité ET fluidité
+            // Critère brevet : fiabilité (score) ET fluidité (moyenne glissante)
             if (nouveauScore >= SEUIL_BREVET) {
-                const moyenneCourante = calculerMoyenne(nouveauxTemps);
+                const fenetre = nouveauxTemps.slice(-SEUIL_BREVET);
+                const moyenneFenetre = calculerMoyenne(fenetre);
                 if (
-                    moyenneCourante !== null &&
-                    moyenneCourante <= delaiMaxFluidite
+                    moyenneFenetre !== null &&
+                    moyenneFenetre <= delaiMaxFluidite
                 ) {
                     setBrevetDisponible(true);
                 }
             }
         } else {
-            // Mauvaise réponse — réinitialiser la série de temps
+            // Mauvaise réponse — série brisée
             setNbErreursTourCourant((prev) => prev + 1);
             setScore(0);
-            setTempsParReponse([]);
+            setTempsParReponse([]); // réinitialise la fenêtre de fluidité
             setStatut("erreur");
             setFileItems((prev) => [tourCourant.modele, ...prev]);
         }
@@ -203,20 +217,24 @@ export function useGameEngine(config) {
 
     /**
      * Passe au tour suivant après le délai visuel de succès.
-     * Appelé depuis App.jsx via setTimeout.
+     * Notifie l'appelant de l'id du nouvel item via callback optionnel.
      *
+     * @param {function(string)=} onNouveauTour
      * @returns {void}
      */
-    const allerTourSuivant = () => {
-        passerTourSuivant(fileItems);
+    const allerTourSuivant = (onNouveauTour) => {
+        passerTourSuivant(fileItems, onNouveauTour);
     };
 
     /**
      * Réinitialise le score et génère un nouveau tour.
+     * Le bilan n'est PAS réinitialisé — réinitialisable uniquement via BilanPanel.
+     * Notifie l'appelant de l'id du premier item via callback optionnel.
      *
+     * @param {function(string)=} onNouveauTour
      * @returns {void}
      */
-    const recommencer = () => {
+    const recommender = (onNouveauTour) => {
         const nouvelleFile = melangerTableau(itemsDisponibles);
         const [premier, ...reste] = nouvelleFile;
         setFileItems(reste);
@@ -230,6 +248,7 @@ export function useGameEngine(config) {
         setNbErreursTourCourant(0);
         setTempsParReponse([]);
         debutTour.current = Date.now();
+        onNouveauTour?.(premier.id);
     };
 
     /** @type {GameState} */
@@ -247,7 +266,7 @@ export function useGameEngine(config) {
         gameState,
         repondre,
         allerTourSuivant,
-        recommencer,
+        recommencer: recommender,
         demarrerChrono,
     };
 }
