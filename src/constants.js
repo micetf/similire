@@ -100,3 +100,9 @@ export const POLICES_DISPONIBLES = {
  * @type {string}
  */
 export const POLICE_DEFAUT = "systeme";
+
+/** Valeurs de seuil de fluidité disponibles dans le ConfigPanel (en ms) */
+export const DELAIS_FLUIDITE = [3000, 6000, 9000];
+
+/** Seuil de fluidité par défaut : 6 secondes */
+export const DELAI_MAX_FLUIDITE_DEFAUT = 6000;
