@@ -3,7 +3,47 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SiMiLire</title>
+        <meta
+            name="description"
+            content="SiMiLire — Discrimination visuelle pour l'apprentissage de la lecture"
+        />
+        <meta name="author" content="Frédéric MISERY — micetf.fr" />
+
+        <title>SiMiLire — MiCetF</title>
+
+        <!--
+            Polices d'apprentissage — Google Fonts
+            preconnect : réduit la latence de connexion DNS + TLS
+            crossorigin sur le second preconnect : requis pour les fonts cross-origin
+        -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <!--
+            Andika — conçue spécialement pour l'apprentissage de la lecture.
+            Forme scripte des lettres 'a' et 'g', espacement optimisé.
+            https://fonts.google.com/specimen/Andika
+        -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400&display=swap"
+        />
+
+        <!--
+            Atkinson Hyperlegible — haute lisibilité générale.
+            Lettres distinctives pour réduire les confusions visuelles.
+            https://fonts.google.com/specimen/Atkinson+Hyperlegible
+        -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap"
+        />
+
+        <!--
+            OpenDyslexic — chargée via @font-face dans src/index.css.
+            Source : https://github.com/antijingoist/opendyslexic (CDN jsDelivr)
+            Aucun <link> nécessaire ici — les déclarations @font-face sont dans le CSS.
+        -->
     </head>
     <body>
         <div id="root"></div>

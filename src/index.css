@@ -1,18 +1,45 @@
+/*
+ * OpenDyslexic — chargement via le package @fontsource/opendyslexic.
+ * Installation : pnpm add @fontsource/opendyslexic
+ *
+ * Fontsource empaquette les fontes directement dans node_modules.
+ * Vite résout les chemins et les inclut dans le bundle à la compilation —
+ * aucune requête externe en production.
+ *
+ * Import de la variante 400 (Regular) uniquement — suffisant pour
+ * l'affichage des étiquettes de discrimination visuelle.
+ */
+@import "@fontsource/opendyslexic/400.css";
+
+/*
+ * Styles globaux SiMiLire
+ * Directives Tailwind + import des polices externes
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Styles globaux ─────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
-    font-family:
-        system-ui,
-        -apple-system,
-        "Segoe UI",
-        Roboto,
-        "Helvetica Neue",
-        Arial,
-        sans-serif;
-    line-height: 1.5;
-    color: #333;
+    background-color: #f9fafb; /* gray-50 */
+    color: #1f2937; /* gray-800 */
+}
+
+/*
+ * Zone de jeu — la police d'apprentissage est appliquée via la propriété
+ * CSS custom --font-jeu, positionnée sur le wrapper dans App.jsx.
+ * Cette variable hérite naturellement dans ModelZone et ProposalGrid.
+ */
+.zone-jeu {
+    font-family: var(--font-jeu, system-ui, -apple-system, sans-serif);
 }
