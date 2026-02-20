@@ -13,6 +13,7 @@ import {
     NB_PROPOSITIONS_MIN,
     NB_PROPOSITIONS_MAX,
     POLICES_DISPONIBLES,
+    DELAIS_FLUIDITE,
 } from "@constants";
 
 // ─── Icônes ──────────────────────────────────────────────────────────────────
@@ -114,8 +115,16 @@ function ConfigPanel({
     onToggleModeTni,
     onToggleVerrouillage,
     onPolice,
+    onDelaiMaxFluidite,
 }) {
-    const { typeUnite, nbPropositions, modeTni, verrouille, police } = config;
+    const {
+        typeUnite,
+        nbPropositions,
+        modeTni,
+        verrouille,
+        police,
+        delaiMaxFluidite,
+    } = config;
 
     // En mode verrouillé, seul le bouton de déverrouillage est visible
     if (verrouille) {
@@ -228,6 +237,32 @@ function ConfigPanel({
                     aria-hidden="true"
                 />
 
+                {/* Sélecteur seuil de fluidité */}
+                <div
+                    className="flex rounded-lg border border-gray-300 overflow-hidden"
+                    role="group"
+                    aria-label="Seuil de fluidité"
+                >
+                    {DELAIS_FLUIDITE.map((delai) => (
+                        <button
+                            key={delai}
+                            onClick={() => onDelaiMaxFluidite(delai)}
+                            className={`
+                px-3 py-2 text-sm font-medium transition-colors
+                ${
+                    delaiMaxFluidite === delai
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-600 hover:bg-gray-50"
+                }
+            `}
+                            aria-pressed={delaiMaxFluidite === delai}
+                            title={`Seuil de fluidité : ${delai / 1000} secondes`}
+                        >
+                            {delai / 1000}s
+                        </button>
+                    ))}
+                </div>
+
                 {/* Bouton mode TNI */}
                 <button
                     onClick={onToggleModeTni}
@@ -270,12 +305,14 @@ ConfigPanel.propTypes = {
         modeTni: PropTypes.bool.isRequired,
         verrouille: PropTypes.bool.isRequired,
         police: PropTypes.string.isRequired,
+        delaiMaxFluidite: PropTypes.number.isRequired,
     }).isRequired,
     onTypeUnite: PropTypes.func.isRequired,
     onNbPropositions: PropTypes.func.isRequired,
     onToggleModeTni: PropTypes.func.isRequired,
     onToggleVerrouillage: PropTypes.func.isRequired,
     onPolice: PropTypes.func.isRequired,
+    onDelaiMaxFluidite: PropTypes.func.isRequired,
 };
 
 export default ConfigPanel;

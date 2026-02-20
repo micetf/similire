@@ -6,6 +6,29 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.3.0] - 2026-02-20 — Sprint C : Mesure de fluidité
+
+### Ajouté
+
+- `src/constants.js` — constantes `DELAIS_FLUIDITE` et `DELAI_MAX_FLUIDITE_DEFAUT`
+- `src/hooks/useGameEngine.js` — mesure du temps par réponse correcte,
+  calcul du temps moyen, exposition de `demarrerChrono()` et `tempsMoyen`
+- `src/hooks/useConfig.js` — champ `delaiMaxFluidite` + setter `setDelaiMaxFluidite`
+- `src/components/config/ConfigPanel.jsx` — sélecteur seuil de fluidité (3s / 6s / 9s)
+- `src/components/progress/ProgressIndicator.jsx` — point thermique de fluidité
+  (vert / orange / rouge / gris) sur les 3 modes d'indicateur
+- `src/components/brevet/BrevetModal.jsx` — affichage du temps moyen sur le brevet
+
+### Modifié
+
+- `src/utils/storage.js` — persistance du champ `delaiMaxFluidite`
+- `src/App.jsx` — branchement de `demarrerChrono()` après le délai d'animation,
+  passage de `tempsMoyen` et `delaiMaxFluidite` aux composants concernés
+
+### Critère de brevet mis à jour
+
+- Fiabilité (10 réussites consécutives) **ET** fluidité (temps moyen ≤ seuil)
+
 ## [1.2.0] - 2026-02-20 — Sprint B : Accessibilité daltonisme
 
 ### Ajouté

@@ -52,7 +52,7 @@ export function useBrevet() {
         if (!canvas) return;
 
         const ctx = canvas.getContext("2d");
-        const { prenom, typeUnite, nbPropositions } = donnees;
+        const { prenom, typeUnite, nbPropositions, tempsMoyen } = donnees;
         const date = new Date().toLocaleDateString("fr-FR");
         const labelType = LABELS_TYPES_UNITE[typeUnite] ?? typeUnite;
 
@@ -116,6 +116,16 @@ export function useBrevet() {
             "36px sans-serif",
             "#64748b"
         );
+
+        if (tempsMoyen !== null) {
+            ecrireCentre(
+                ctx,
+                `Fluidité : ${(tempsMoyen / 1000).toFixed(1)} s en moyenne`,
+                760,
+                "36px sans-serif",
+                "#64748b"
+            );
+        }
 
         ecrireCentre(
             ctx,
