@@ -446,7 +446,7 @@ src/components/game/
 
 ---
 
-## Sprint 6 — Panneau de configuration
+## Sprint 6 — Panneau de configuration ✅ TERMINÉ
 
 **Objectif :** panneau enseignant complet, verrouillable, mode TNI.
 **Durée estimée :** 1–2 sessions

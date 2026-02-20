@@ -8,10 +8,11 @@
 import { useState, useCallback } from "react";
 import { useConfig } from "@hooks/useConfig";
 import { useGameEngine } from "@hooks/useGameEngine";
+import ConfigPanel from "@/components/config/ConfigPanel";
 import ModelZone from "@/components/game/ModelZone";
 import ProposalGrid from "@/components/game/ProposalGrid";
 import FeedbackMessage from "@/components/game/FeedbackMessage";
-import { TYPES_UNITE, DELAI_SUCCES_MS } from "@constants";
+import { DELAI_SUCCES_MS } from "@constants";
 
 /**
  * Composant racine de SiMiLire.
@@ -19,8 +20,13 @@ import { TYPES_UNITE, DELAI_SUCCES_MS } from "@constants";
  * @returns {JSX.Element}
  */
 function App() {
-    const { config, setTypeUnite, setNbPropositions, toggleModeTni } =
-        useConfig();
+    const {
+        config,
+        setTypeUnite,
+        setNbPropositions,
+        toggleModeTni,
+        toggleVerrouillage,
+    } = useConfig();
 
     const { gameState, repondre, allerTourSuivant, recommencer } =
         useGameEngine(config);
@@ -33,7 +39,6 @@ function App() {
         nbErreursTourCourant,
     } = gameState;
 
-    // Id de l'étiquette cliquée — pour l'animation shake
     const [idClique, setIdClique] = useState(null);
 
     const handleRepondre = useCallback(
@@ -56,52 +61,20 @@ function App() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-8 p-6">
-            {/* Config rapide — sera remplacée par ConfigPanel au sprint 6 */}
-            <div className="flex flex-wrap gap-2 justify-center">
-                {TYPES_UNITE.map((type) => (
-                    <button
-                        key={type}
-                        onClick={() => setTypeUnite(type)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            config.typeUnite === type
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        }`}
-                    >
-                        {type}
-                    </button>
-                ))}
-                <button
-                    onClick={() => setNbPropositions(config.nbPropositions - 1)}
-                    className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                >
-                    −
-                </button>
-                <span className="flex items-center font-bold text-lg px-2">
-                    {config.nbPropositions}
-                </span>
-                <button
-                    onClick={() => setNbPropositions(config.nbPropositions + 1)}
-                    className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                >
-                    +
-                </button>
-                <button
-                    onClick={toggleModeTni}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        config.modeTni
-                            ? "bg-indigo-600 text-white"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                    TNI
-                </button>
-            </div>
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center gap-6 p-4">
+            {/* Panneau de configuration */}
+            <ConfigPanel
+                config={config}
+                onTypeUnite={setTypeUnite}
+                onNbPropositions={setNbPropositions}
+                onToggleModeTni={toggleModeTni}
+                onToggleVerrouillage={toggleVerrouillage}
+            />
 
             {/* Score */}
             <p className="text-sm text-gray-500">
-                Réussites consécutives : <strong>{score}</strong>
+                Réussites consécutives :{" "}
+                <strong className="text-gray-800">{score}</strong>
             </p>
 
             {/* Zone modèle */}
@@ -133,7 +106,8 @@ function App() {
                     </p>
                     <button
                         onClick={recommencer}
-                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors"
+                        className="px-6 py-2 bg-green-600 hover:bg-green-700
+                                   text-white font-bold rounded-lg transition-colors"
                     >
                         Recommencer
                     </button>
