@@ -6,6 +6,23 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.4.0] - 2026-02-20 — Sprint HelpModal : Aide pédagogique
+
+### Ajouté
+
+- `src/data/aide.js` — source de vérité du contenu d'aide, structurée
+  en sections (Jouer, Configurer, Fluidité) pilotant le composant
+- `src/components/help/HelpModal.jsx` — modale d'aide générique à onglets,
+  contenu entièrement piloté par aide.js
+- `src/utils/storage.js` — fonctions `hasAideVue()` et `markAideVue()`
+- `src/constants.js` — clé `CLES_STORAGE.AIDE_VUE`
+
+### Modifié
+
+- `src/components/layout/Navbar.jsx` — ajout bouton `?` (desktop + mobile)
+- `src/App.jsx` — gestion `modalAideVisible`, affichage automatique
+  à la première visite via flag localStorage
+
 ## [1.3.0] - 2026-02-20 — Sprint C : Mesure de fluidité
 
 ### Ajouté

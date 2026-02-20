@@ -148,6 +148,22 @@ src/components/brevet/BrevetModal.jsx  ← affichage temps moyen sur brevet
 
 ---
 
+## Sprint HelpModal — Aide pédagogique 🔴 P1 ✅ TERMINÉ
+
+**Objectif :** Documenter l'outil pour l'enseignant, extensible à chaque sprint  
+**Branche :** `feat/sprint-helpmodal`
+
+### Fichiers produits / modifiés
+
+```
+src/data/aide.js                       ← NOUVEAU
+src/components/help/HelpModal.jsx      ← NOUVEAU
+src/components/layout/Navbar.jsx       ← bouton ?
+src/utils/storage.js                   ← hasAideVue / markAideVue
+src/constants.js                       ← CLES_STORAGE.AIDE_VUE
+src/App.jsx                            ← gestion état + première visite
+```
+
 ## Sprint D — Tableau de bord enseignant 🟠 P2
 
 **Objectif :** Donner à l'enseignant une vision des items difficiles  
