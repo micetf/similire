@@ -6,6 +6,27 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.5.0] - 2026-02-20 — Sprint 4 : Hook useGameEngine
+
+### Ajouté
+
+- `src/hooks/useGameEngine.js` — moteur de jeu complet
+    - Génération des tours avec distracteurs qualifiés
+    - Traitement des réponses correctes et incorrectes
+    - Répétition espacée implicite (items échoués réinsérés en priorité)
+    - Détection du seuil brevet (SEUIL_BREVET réussites consécutives)
+    - Réinitialisation au changement de config via useEffect
+
+### Modifié
+
+- `src/data/mots.js` — correction des doublons d'id et des auto-distracteurs
+- `src/data/index.js` — validation permanente du corpus (doublons + auto-distracteurs)
+  préparant l'ouverture à la personnalisation enseignant
+
+### Corrigé
+
+- Score et statut remis à zéro au changement de type ou de nombre de propositions
+
 ## [0.4.0] - 2026-02-20 — Sprint 3 : Hook useConfig
 
 ### Ajouté
