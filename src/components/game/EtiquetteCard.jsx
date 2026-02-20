@@ -1,12 +1,37 @@
 /**
  * Étiquette individuelle cliquable.
  * Gère ses propres états visuels : attente, succès, erreur, guidage.
+ * La taille de police s'adapte automatiquement à la longueur du contenu.
  *
  * @module components/game/EtiquetteCard
  */
 
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+
+/**
+ * Calcule les classes de taille de police et largeur minimale
+ * selon le nombre de caractères de la valeur affichée.
+ *
+ * @param {string}  valeur   - Valeur affichée dans l'étiquette
+ * @param {boolean} modeTni  - Mode TNI activé
+ * @returns {{ texte: string, largeur: string }}
+ */
+function classesTailleTexte(valeur, modeTni) {
+    const n = valeur.length;
+
+    if (modeTni) {
+        if (n <= 1) return { texte: "text-6xl", largeur: "min-w-[8rem]" };
+        if (n <= 3) return { texte: "text-5xl", largeur: "min-w-[9rem]" };
+        if (n <= 5) return { texte: "text-4xl", largeur: "min-w-[10rem]" };
+        return { texte: "text-3xl", largeur: "min-w-[11rem]" };
+    }
+
+    if (n <= 1) return { texte: "text-4xl", largeur: "min-w-[5rem]" };
+    if (n <= 3) return { texte: "text-3xl", largeur: "min-w-[6rem]" };
+    if (n <= 5) return { texte: "text-2xl", largeur: "min-w-[7rem]" };
+    return { texte: "text-xl", largeur: "min-w-[8rem]" };
+}
 
 /**
  * Étiquette individuelle cliquable du jeu SiMiLire.
@@ -32,10 +57,8 @@ function EtiquetteCard({
     modeTni,
     onClic,
 }) {
-    // État local pour déclencher et réinitialiser l'animation shake
     const [animer, setAnimer] = useState(false);
 
-    // Déclenche l'animation shake quand cette étiquette est cliquée en erreur
     useEffect(() => {
         if (estCliquee && statut === "erreur") {
             setAnimer(true);
@@ -44,27 +67,20 @@ function EtiquetteCard({
         }
     }, [estCliquee, statut]);
 
-    // Guidage discret : halo jaune sur la bonne réponse au 2e échec
     const afficherGuidage = estCorrecte && nbErreursTourCourant >= 2;
 
-    // Classes de couleur selon l'état
     const classesCouleur = () => {
-        if (statut === "succes" && estCorrecte) {
+        if (statut === "succes" && estCorrecte)
             return "bg-green-200 border-green-500 text-green-800";
-        }
-        if (afficherGuidage) {
+        if (afficherGuidage)
             return "bg-yellow-100 border-yellow-400 text-gray-800";
-        }
-        if (estCliquee && statut === "erreur") {
+        if (estCliquee && statut === "erreur")
             return "bg-orange-100 border-orange-400 text-gray-800";
-        }
         return "bg-white border-gray-300 text-gray-800 hover:border-blue-400 hover:bg-blue-50";
     };
 
-    // Tailles selon le mode TNI
-    const classesTaille = modeTni
-        ? "w-32 h-32 text-tni-md"
-        : "w-20 h-20 text-3xl";
+    const { texte, largeur } = classesTailleTexte(valeur, modeTni);
+    const hauteur = modeTni ? "h-28" : "h-16";
 
     return (
         <button
@@ -72,9 +88,10 @@ function EtiquetteCard({
             disabled={statut === "succes"}
             className={`
                 flex items-center justify-center
-                ${classesTaille}
+                ${largeur} ${hauteur} px-3
                 font-bold rounded-lg border-2
                 transition-colors duration-150
+                ${texte}
                 ${classesCouleur()}
                 ${animer ? "animate-shake" : ""}
             `}

@@ -1,6 +1,7 @@
 /**
  * Grille des étiquettes proposées à l'élève.
- * Disposition responsive selon le nombre de propositions.
+ * Utilise flex-wrap justify-center pour centrer naturellement
+ * tous les cas, y compris les rangées incomplètes.
  *
  * @module components/game/ProposalGrid
  */
@@ -30,12 +31,8 @@ function ProposalGrid({
     modeTni,
     onRepondre,
 }) {
-    // Nombre de colonnes adapté au nombre de propositions
-    const nbCols = Math.min(propositions.length, 4);
-    const classeGrille = `grid grid-cols-${nbCols} gap-3 justify-items-center`;
-
     return (
-        <div className={classeGrille}>
+        <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
             {propositions.map((item) => (
                 <EtiquetteCard
                     key={item.id}
