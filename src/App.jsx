@@ -31,10 +31,16 @@ function App() {
         toggleModeTni,
         toggleVerrouillage,
         setPolice,
+        setDelaiMaxFluidite,
     } = useConfig();
 
-    const { gameState, repondre, allerTourSuivant, recommencer } =
-        useGameEngine(config);
+    const {
+        gameState,
+        repondre,
+        allerTourSuivant,
+        recommencer,
+        demarrerChrono,
+    } = useGameEngine(config);
 
     const {
         tourCourant,
@@ -43,6 +49,7 @@ function App() {
         statut,
         brevetDisponible,
         nbErreursTourCourant,
+        tempsMoyen,
     } = gameState;
 
     const [idClique, setIdClique] = useState(null);
@@ -61,6 +68,7 @@ function App() {
                 setTimeout(() => {
                     setIdClique(null);
                     allerTourSuivant();
+                    demarrerChrono();
                     handleBrevetDisponible();
                 }, DELAI_SUCCES_MS);
             }
@@ -111,6 +119,7 @@ function App() {
                     onToggleModeTni={toggleModeTni}
                     onToggleVerrouillage={toggleVerrouillage}
                     onPolice={setPolice}
+                    onDelaiMaxFluidite={setDelaiMaxFluidite}
                 />
 
                 {/* Zone modèle */}
@@ -142,6 +151,8 @@ function App() {
                     score={score}
                     scoreTotal={scoreTotal}
                     typeUnite={config.typeUnite}
+                    tempsMoyen={tempsMoyen}
+                    delaiMaxFluidite={config.delaiMaxFluidite}
                 />
 
                 {/* Modale brevet */}
@@ -149,6 +160,7 @@ function App() {
                     estVisible={modalBrevetVisible}
                     typeUnite={config.typeUnite}
                     nbPropositions={config.nbPropositions}
+                    tempsMoyen={tempsMoyen}
                     onFermer={handleFermerModal}
                     onRecommencer={handleRecommencer}
                 />

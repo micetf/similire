@@ -94,7 +94,7 @@ src/components/game/FeedbackMessage.jsx ← icône sur le message
 
 ---
 
-## Sprint C — Mesure de fluidité 🟠 P2
+## Sprint C — Mesure de fluidité 🟠 P2 ✅ TERMINÉ
 
 **Objectif :** Mesurer la vitesse de réponse et l'intégrer au critère de brevet  
 **Durée estimée :** 2 sessions  

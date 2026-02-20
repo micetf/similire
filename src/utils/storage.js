@@ -10,6 +10,7 @@ import {
     NB_PROPOSITIONS_DEFAUT,
     TYPES_UNITE,
     POLICE_DEFAUT,
+    DELAI_MAX_FLUIDITE_DEFAUT,
 } from "@constants";
 
 /**
@@ -17,9 +18,10 @@ import {
  * Sous-ensemble de Config — exclut modeTni et verrouille (état de session).
  *
  * @typedef {Object} ConfigPersistee
- * @property {string} typeUnite      - Type d'unité linguistique
- * @property {number} nbPropositions - Nombre de propositions
- * @property {string} police         - Identifiant de la police d'apprentissage
+ * @property {string} typeUnite         - Type d'unité linguistique
+ * @property {number} nbPropositions    - Nombre de propositions
+ * @property {string} police            - Identifiant de la police d'apprentissage
+ * @property {number} delaiMaxFluidite  - Seuil de fluidité en ms
  */
 
 /**
@@ -30,6 +32,7 @@ const CONFIG_DEFAUT = {
     typeUnite: TYPES_UNITE[0],
     nbPropositions: NB_PROPOSITIONS_DEFAUT,
     police: POLICE_DEFAUT,
+    delaiMaxFluidite: DELAI_MAX_FLUIDITE_DEFAUT,
     modeTni: false,
     verrouille: false,
 };
@@ -38,9 +41,6 @@ const CONFIG_DEFAUT = {
  * Charge la configuration depuis localStorage.
  * Retourne les valeurs par défaut si aucune config n'existe
  * ou si le JSON est corrompu.
- *
- * La valeur `police` est validée : si elle ne figure pas parmi les polices
- * connues au moment du chargement, elle est remplacée par POLICE_DEFAUT.
  *
  * @returns {ConfigPersistee & { modeTni: boolean, verrouille: boolean }}
  */
@@ -51,7 +51,6 @@ export function loadConfigFromStorage() {
 
         const parsed = JSON.parse(raw);
 
-        // Validation des champs critiques
         const typeUnite = TYPES_UNITE.includes(parsed.typeUnite)
             ? parsed.typeUnite
             : CONFIG_DEFAUT.typeUnite;
@@ -63,18 +62,23 @@ export function loadConfigFromStorage() {
                 ? parsed.nbPropositions
                 : CONFIG_DEFAUT.nbPropositions;
 
-        // La liste des polices est importée dynamiquement pour éviter la
-        // dépendance circulaire — on valide simplement que la valeur est une string
         const police =
             typeof parsed.police === "string" && parsed.police.length > 0
                 ? parsed.police
                 : CONFIG_DEFAUT.police;
+
+        const delaiMaxFluidite =
+            typeof parsed.delaiMaxFluidite === "number" &&
+            parsed.delaiMaxFluidite > 0
+                ? parsed.delaiMaxFluidite
+                : CONFIG_DEFAUT.delaiMaxFluidite;
 
         return {
             ...CONFIG_DEFAUT,
             typeUnite,
             nbPropositions,
             police,
+            delaiMaxFluidite,
         };
     } catch {
         return { ...CONFIG_DEFAUT };
@@ -83,7 +87,7 @@ export function loadConfigFromStorage() {
 
 /**
  * Sauvegarde la configuration dans localStorage.
- * Seuls les champs persistés (typeUnite, nbPropositions, police) sont écrits —
+ * Seuls les champs persistés sont écrits —
  * modeTni et verrouille sont intentionnellement omis.
  *
  * @param {ConfigPersistee & { modeTni: boolean, verrouille: boolean }} config
@@ -91,13 +95,17 @@ export function loadConfigFromStorage() {
  */
 export function saveConfigToStorage(config) {
     try {
-        const { typeUnite, nbPropositions, police } = config;
+        const { typeUnite, nbPropositions, police, delaiMaxFluidite } = config;
         localStorage.setItem(
             CLES_STORAGE.CONFIG,
-            JSON.stringify({ typeUnite, nbPropositions, police })
+            JSON.stringify({
+                typeUnite,
+                nbPropositions,
+                police,
+                delaiMaxFluidite,
+            })
         );
     } catch {
-        // localStorage peut être indisponible (navigation privée, quotas) —
-        // l'application continue de fonctionner sans persistance
+        // localStorage indisponible — l'application continue sans persistance
     }
 }

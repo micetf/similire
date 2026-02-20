@@ -19,6 +19,7 @@ import {
     NB_PROPOSITIONS_MIN,
     NB_PROPOSITIONS_MAX,
     POLICES_DISPONIBLES,
+    DELAIS_FLUIDITE,
 } from "@constants";
 import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
 
@@ -33,6 +34,8 @@ import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
  * @property {boolean}   modeTni        - Mode TNI activé (non persisté)
  * @property {boolean}   verrouille     - Configuration verrouillée (non persisté)
  * @property {string}    police         - Identifiant de la police d'apprentissage
+ * @property {number}    delaiMaxFluidite - Seuil de fluidité en ms (persisté)
+
  */
 
 /**
@@ -102,6 +105,19 @@ export function useConfig() {
         saveConfigToStorage(next);
     };
 
+    /**
+     * Change le seuil de fluidité et persiste le choix.
+     * La valeur doit être dans DELAIS_FLUIDITE.
+     *
+     * @param {number} delai - Seuil en ms (3000, 6000 ou 9000)
+     */
+    const setDelaiMaxFluidite = (delai) => {
+        if (!DELAIS_FLUIDITE.includes(delai)) return;
+        const next = { ...config, delaiMaxFluidite: delai };
+        setConfig(next);
+        saveConfigToStorage(next);
+    };
+
     return {
         config,
         setTypeUnite,
@@ -109,5 +125,6 @@ export function useConfig() {
         toggleModeTni,
         toggleVerrouillage,
         setPolice,
+        setDelaiMaxFluidite,
     };
 }

@@ -1,9 +1,7 @@
 /**
  * Indicateur de progression de l'élève.
- * Le format s'adapte automatiquement au type d'unité sélectionné :
- * - lettre  → étoiles (GS/CP)
- * - syllabe → barre de progression (CP/CE1)
- * - mot     → score numérique (CE1/CE2)
+ * Le format s'adapte au type d'unité.
+ * Un point thermique discret signale l'état de fluidité sur tous les modes.
  *
  * @module components/progress/ProgressIndicator
  */
@@ -12,12 +10,53 @@ import PropTypes from "prop-types";
 import { SEUIL_BREVET } from "@constants";
 
 /**
- * Indicateur étoiles — format GS/CP.
+ * Calcule la couleur thermique selon le temps moyen et le seuil.
  *
- * @param {Object} props
- * @param {number} props.score - Score consécutif courant
+ * - Vert  : tempsMoyen < seuil × 0.8 (clairement fluide)
+ * - Orange : tempsMoyen < seuil (borderline)
+ * - Rouge  : tempsMoyen >= seuil (pas fluide)
+ * - Gris   : pas encore de données
+ *
+ * @param {number|null} tempsMoyen       - Temps moyen en ms, null si pas de données
+ * @param {number}      delaiMaxFluidite - Seuil en ms
+ * @returns {string} Classe Tailwind de couleur
+ */
+function classeCouleurThermique(tempsMoyen, delaiMaxFluidite) {
+    if (tempsMoyen === null) return "bg-gray-300";
+    if (tempsMoyen < delaiMaxFluidite * 0.8) return "bg-green-500";
+    if (tempsMoyen < delaiMaxFluidite) return "bg-orange-400";
+    return "bg-red-500";
+}
+
+/**
+ * Point coloré indiquant l'état de fluidité.
+ *
+ * @param {Object}      props
+ * @param {number|null} props.tempsMoyen       - Temps moyen en ms
+ * @param {number}      props.delaiMaxFluidite - Seuil en ms
  * @returns {JSX.Element}
  */
+function PointThermique({ tempsMoyen, delaiMaxFluidite }) {
+    const couleur = classeCouleurThermique(tempsMoyen, delaiMaxFluidite);
+    const label =
+        tempsMoyen === null
+            ? "Fluidité : pas encore de données"
+            : `Fluidité : ${(tempsMoyen / 1000).toFixed(1)}s en moyenne`;
+
+    return (
+        <span
+            className={`inline-block w-2 h-2 rounded-full shrink-0 ${couleur}`}
+            aria-label={label}
+            title={label}
+        />
+    );
+}
+
+PointThermique.propTypes = {
+    tempsMoyen: PropTypes.number,
+    delaiMaxFluidite: PropTypes.number.isRequired,
+};
+
 function IndicateurEtoiles({ score }) {
     const nbEtoiles = 5;
     const etoilesPleine = Math.min(Math.floor(score / 2), nbEtoiles);
@@ -46,13 +85,6 @@ IndicateurEtoiles.propTypes = {
     score: PropTypes.number.isRequired,
 };
 
-/**
- * Indicateur barre de progression — format CP/CE1.
- *
- * @param {Object} props
- * @param {number} props.score - Score consécutif courant
- * @returns {JSX.Element}
- */
 function IndicateurBarre({ score }) {
     const pourcentage = Math.min((score / SEUIL_BREVET) * 100, 100);
 
@@ -82,14 +114,6 @@ IndicateurBarre.propTypes = {
     score: PropTypes.number.isRequired,
 };
 
-/**
- * Indicateur score numérique — format CE1/CE2.
- *
- * @param {Object} props
- * @param {number} props.score      - Score consécutif courant
- * @param {number} props.scoreTotal - Total de bonnes réponses sur la session
- * @returns {JSX.Element}
- */
 function IndicateurNumerique({ score, scoreTotal }) {
     return (
         <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -114,22 +138,40 @@ IndicateurNumerique.propTypes = {
 };
 
 /**
- * Indicateur de progression — sélectionne le format selon le type d'unité.
+ * Indicateur de progression — format adapté au type d'unité
+ * + point thermique de fluidité sur tous les modes.
  *
- * @param {Object} props
- * @param {number} props.score      - Score consécutif courant
- * @param {number} props.scoreTotal - Total de bonnes réponses sur la session
- * @param {string} props.typeUnite  - Type d'unité courant
+ * @param {Object}      props
+ * @param {number}      props.score             - Score consécutif courant
+ * @param {number}      props.scoreTotal        - Total de bonnes réponses
+ * @param {string}      props.typeUnite         - Type d'unité courant
+ * @param {number|null} props.tempsMoyen        - Temps moyen par réponse (ms)
+ * @param {number}      props.delaiMaxFluidite  - Seuil de fluidité (ms)
  * @returns {JSX.Element}
  */
-function ProgressIndicator({ score, scoreTotal, typeUnite }) {
+function ProgressIndicator({
+    score,
+    scoreTotal,
+    typeUnite,
+    tempsMoyen,
+    delaiMaxFluidite,
+}) {
     return (
         <div className="fixed bottom-4 left-4 bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2">
-            {typeUnite === "lettre" && <IndicateurEtoiles score={score} />}
-            {typeUnite === "syllabe" && <IndicateurBarre score={score} />}
-            {typeUnite === "mot" && (
-                <IndicateurNumerique score={score} scoreTotal={scoreTotal} />
-            )}
+            <div className="flex items-center gap-3">
+                {typeUnite === "lettre" && <IndicateurEtoiles score={score} />}
+                {typeUnite === "syllabe" && <IndicateurBarre score={score} />}
+                {typeUnite === "mot" && (
+                    <IndicateurNumerique
+                        score={score}
+                        scoreTotal={scoreTotal}
+                    />
+                )}
+                <PointThermique
+                    tempsMoyen={tempsMoyen}
+                    delaiMaxFluidite={delaiMaxFluidite}
+                />
+            </div>
         </div>
     );
 }
@@ -138,6 +180,8 @@ ProgressIndicator.propTypes = {
     score: PropTypes.number.isRequired,
     scoreTotal: PropTypes.number.isRequired,
     typeUnite: PropTypes.string.isRequired,
+    tempsMoyen: PropTypes.number,
+    delaiMaxFluidite: PropTypes.number.isRequired,
 };
 
 export default ProgressIndicator;

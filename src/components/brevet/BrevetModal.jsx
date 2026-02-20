@@ -29,6 +29,7 @@ function BrevetModal({
     estVisible,
     typeUnite,
     nbPropositions,
+    tempsMoyen,
     onFermer,
     onRecommencer,
 }) {
@@ -39,7 +40,7 @@ function BrevetModal({
     // Génère le brevet à chaque changement de prénom ou d'ouverture
     useEffect(() => {
         if (estVisible) {
-            genererBrevet({ prenom, typeUnite, nbPropositions });
+            genererBrevet({ prenom, typeUnite, nbPropositions, tempsMoyen });
         }
     }, [estVisible, prenom, typeUnite, nbPropositions, genererBrevet]);
 
@@ -162,6 +163,7 @@ BrevetModal.propTypes = {
     estVisible: PropTypes.bool.isRequired,
     typeUnite: PropTypes.string.isRequired,
     nbPropositions: PropTypes.number.isRequired,
+    tempsMoyen: PropTypes.number.isRequired,
     onFermer: PropTypes.func.isRequired,
     onRecommencer: PropTypes.func.isRequired,
 };
