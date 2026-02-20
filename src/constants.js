@@ -30,6 +30,7 @@ export const DUREE_GUIDAGE_MS = 1000;
 /** Clés de stockage localStorage */
 export const CLES_STORAGE = {
     CONFIG: "similire_config",
+    AIDE_VUE: "similire_aide_vue",
 };
 
 // ─── Types d'unités ───────────────────────────────────────────────────────────
