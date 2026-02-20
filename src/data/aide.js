@@ -112,7 +112,10 @@ export const SECTIONS_AIDE = [
                 titre: "Seuil de fluidité",
                 icone: "🎚️",
                 description:
-                    "Régler le temps moyen cible par réponse : 3s pour des élèves de CE2 bien automatisés, 6s (défaut) pour CP/CE1 en consolidation, 9s pour les élèves en difficulté ou en début d'apprentissage.",
+                    "Régler le temps total cible pour 10 réponses consécutives : " +
+                    "30s pour des élèves de CE2 bien automatisés, " +
+                    "60s (défaut) pour CP/CE1 en consolidation, " +
+                    "90s pour les élèves en difficulté.",
             },
             {
                 titre: "Point thermique",
@@ -124,7 +127,9 @@ export const SECTIONS_AIDE = [
                 titre: "Critère du brevet",
                 icone: "🎓",
                 description:
-                    "Le brevet est accessible quand l'élève atteint 10 réussites consécutives ET un temps moyen inférieur au seuil. Les deux conditions sont requises : fiabilité et fluidité.",
+                    "Le brevet est accessible quand l'élève enchaîne 10 réussites consécutives " +
+                    "ET que ces 10 réponses ont été données dans le temps configuré " +
+                    "(30s, 60s ou 90s). Les deux conditions sont requises : fiabilité et fluidité.",
             },
         ],
     },

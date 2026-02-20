@@ -164,7 +164,7 @@ src/constants.js                       ← CLES_STORAGE.AIDE_VUE
 src/App.jsx                            ← gestion état + première visite
 ```
 
-## Sprint D — Tableau de bord enseignant 🟠 P2
+## Sprint D — Tableau de bord enseignant 🟠 P2 ✅ TERMINÉ
 
 **Objectif :** Donner à l'enseignant une vision des items difficiles  
 **Durée estimée :** 2 sessions  
