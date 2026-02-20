@@ -135,3 +135,43 @@ export function markAideVue() {
         // localStorage indisponible — pas bloquant
     }
 }
+
+/**
+ * Charge le bilan depuis localStorage.
+ * Retourne un bilan vide si absent ou corrompu.
+ *
+ * @returns {{ tentatives: Object.<string, number>, erreurs: Object.<string, number> }}
+ */
+export function loadBilanFromStorage() {
+    try {
+        const raw = localStorage.getItem(CLES_STORAGE.BILAN);
+        if (!raw) return { tentatives: {}, erreurs: {} };
+        const parsed = JSON.parse(raw);
+        return {
+            tentatives:
+                parsed.tentatives && typeof parsed.tentatives === "object"
+                    ? parsed.tentatives
+                    : {},
+            erreurs:
+                parsed.erreurs && typeof parsed.erreurs === "object"
+                    ? parsed.erreurs
+                    : {},
+        };
+    } catch {
+        return { tentatives: {}, erreurs: {} };
+    }
+}
+
+/**
+ * Sauvegarde le bilan dans localStorage.
+ *
+ * @param {{ tentatives: Object.<string, number>, erreurs: Object.<string, number> }} bilan
+ * @returns {void}
+ */
+export function saveBilanToStorage(bilan) {
+    try {
+        localStorage.setItem(CLES_STORAGE.BILAN, JSON.stringify(bilan));
+    } catch {
+        // localStorage indisponible — pas bloquant
+    }
+}

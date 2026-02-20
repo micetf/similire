@@ -14,7 +14,7 @@ import { useState, useCallback } from "react";
  *
  * @returns {JSX.Element}
  */
-function Navbar({ onAide }) {
+function Navbar({ onAide, onBilan, verrouille }) {
     const [menuOuvert, setMenuOuvert] = useState(false);
 
     const handleContact = useCallback(() => {
@@ -124,6 +124,26 @@ function Navbar({ onAide }) {
                                 </button>
                             </li>
 
+                            {!verrouille && (
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={onBilan}
+                                        title="Bilan de session"
+                                        className="flex items-center gap-1 px-3 h-9
+                       bg-gray-600 hover:bg-gray-500
+                       text-white text-sm font-medium rounded-lg
+                       transition-colors"
+                                        aria-label="Ouvrir le bilan de session"
+                                    >
+                                        📊
+                                        <span className="hidden lg:inline">
+                                            Bilan
+                                        </span>
+                                    </button>
+                                </li>
+                            )}
+
                             {/* Don PayPal */}
                             <li>
                                 <form
@@ -218,6 +238,18 @@ function Navbar({ onAide }) {
                             <span className="font-bold text-sm">?</span>
                             <span className="text-sm">Aide</span>
                         </button>
+                        {!verrouille && (
+                            <button
+                                type="button"
+                                onClick={onBilan}
+                                className="flex items-center gap-2 px-3 py-2
+                   bg-gray-600 hover:bg-gray-500
+                   text-white rounded transition-colors"
+                            >
+                                <span>📊</span>
+                                <span className="text-sm">Bilan</span>
+                            </button>
+                        )}
                         <div className="flex gap-2 px-2">
                             {/* Don PayPal mobile */}
                             <form
@@ -286,6 +318,8 @@ function Navbar({ onAide }) {
 
 Navbar.propTypes = {
     onAide: PropTypes.func.isRequired,
+    onBilan: PropTypes.func.isRequired,
+    verrouille: PropTypes.bool.isRequired,
 };
 
 export default Navbar;

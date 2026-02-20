@@ -5,9 +5,10 @@
  * @module App
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useConfig } from "@hooks/useConfig";
 import { useGameEngine } from "@hooks/useGameEngine";
+import { useBilan } from "@hooks/useBilan";
 import Navbar from "@/components/layout/Navbar";
 import NavbarSpacer from "@/components/layout/NavbarSpacer";
 import ConfigPanel from "@/components/config/ConfigPanel";
@@ -17,8 +18,10 @@ import FeedbackMessage from "@/components/game/FeedbackMessage";
 import ProgressIndicator from "@/components/progress/ProgressIndicator";
 import BrevetModal from "@/components/brevet/BrevetModal";
 import HelpModal from "@/components/help/HelpModal";
-import { hasAideVue, markAideVue } from "@utils/storage";
+import BilanPanel from "@/components/bilan/BilanPanel";
+import { corpus } from "@data";
 import { DELAI_SUCCES_MS, POLICES_DISPONIBLES } from "@constants";
+import { hasAideVue, markAideVue } from "@utils/storage";
 
 /**
  * Composant racine de SiMiLire.
@@ -26,6 +29,7 @@ import { DELAI_SUCCES_MS, POLICES_DISPONIBLES } from "@constants";
  * @returns {JSX.Element}
  */
 function App() {
+    // ─── Configuration ──────────────────────────────────────────────────────
     const {
         config,
         setTypeUnite,
@@ -36,6 +40,7 @@ function App() {
         setDelaiMaxFluidite,
     } = useConfig();
 
+    // ─── Moteur de jeu ──────────────────────────────────────────────────────
     const {
         gameState,
         repondre,
@@ -54,11 +59,48 @@ function App() {
         tempsMoyen,
     } = gameState;
 
+    // ─── Bilan ──────────────────────────────────────────────────────────────
+    /**
+     * Index id → item, toutes unités confondues.
+     * Stable — corpus est une constante importée.
+     */
+    const itemsIndex = useMemo(() => {
+        const index = {};
+        Object.values(corpus)
+            .flat()
+            .forEach((item) => {
+                index[item.id] = item;
+            });
+        return index;
+    }, []);
+
+    const {
+        itemsLesPlusEchoues,
+        totalTentatives,
+        totalErreurs,
+        hasDonnees,
+        enregistrerTentative,
+        enregistrerErreur,
+        reinitialiser: reinitialiserBilan,
+    } = useBilan(itemsIndex);
+
+    // ─── État des modales ────────────────────────────────────────────────────
     const [idClique, setIdClique] = useState(null);
     const [modalBrevetVisible, setModalBrevetVisible] = useState(false);
     const [modalAideVisible, setModalAideVisible] = useState(
-        () => !hasAideVue() // true si première visite
+        () => !hasAideVue()
     );
+    const [modalBilanVisible, setModalBilanVisible] = useState(false);
+
+    // ─── Enregistrement du premier tour ─────────────────────────────────────
+    // Intentionnellement limité au mount — les tours suivants sont enregistrés
+    // via les callbacks de allerTourSuivant et recommencer.
+    useEffect(() => {
+        enregistrerTentative(tourCourant.modele.id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ─── Handlers jeu ───────────────────────────────────────────────────────
     const handleBrevetDisponible = useCallback(() => {
         if (brevetDisponible) setModalBrevetVisible(true);
     }, [brevetDisponible]);
@@ -68,21 +110,31 @@ function App() {
             if (statut === "succes") return;
             setIdClique(id);
             repondre(id);
+
             if (id === tourCourant.modele.id) {
+                // Bonne réponse — passer au tour suivant après délai visuel
                 setTimeout(() => {
                     setIdClique(null);
-                    allerTourSuivant();
+                    allerTourSuivant((nouvelItemId) => {
+                        enregistrerTentative(nouvelItemId);
+                    });
                     demarrerChrono();
                     handleBrevetDisponible();
                 }, DELAI_SUCCES_MS);
+            } else {
+                // Mauvaise réponse — enregistrer l'erreur sur l'item courant
+                enregistrerErreur(tourCourant.modele.id);
             }
         },
         [
             statut,
             repondre,
             allerTourSuivant,
+            demarrerChrono,
             tourCourant.modele.id,
             handleBrevetDisponible,
+            enregistrerTentative,
+            enregistrerErreur,
         ]
     );
 
@@ -90,15 +142,19 @@ function App() {
         setIdClique(null);
     }, []);
 
+    // ─── Handlers brevet ────────────────────────────────────────────────────
     const handleFermerModal = useCallback(() => {
         setModalBrevetVisible(false);
     }, []);
 
     const handleRecommencer = useCallback(() => {
         setModalBrevetVisible(false);
-        recommencer();
-    }, [recommencer]);
+        recommencer((nouvelItemId) => {
+            enregistrerTentative(nouvelItemId);
+        });
+    }, [recommencer, enregistrerTentative]);
 
+    // ─── Handlers aide ──────────────────────────────────────────────────────
     const handleOuvrirAide = useCallback(() => {
         setModalAideVisible(true);
     }, []);
@@ -108,15 +164,35 @@ function App() {
         setModalAideVisible(false);
     }, []);
 
+    // ─── Handlers bilan ─────────────────────────────────────────────────────
+    const handleOuvrirBilan = useCallback(() => {
+        setModalBilanVisible(true);
+    }, []);
+
+    const handleFermerBilan = useCallback(() => {
+        setModalBilanVisible(false);
+    }, []);
+
+    const handleReinitialiserBilan = useCallback(() => {
+        reinitialiserBilan();
+        setModalBilanVisible(false);
+    }, [reinitialiserBilan]);
+
+    // ─── Style police ────────────────────────────────────────────────────────
     const stylePolice = {
         "--font-jeu":
             POLICES_DISPONIBLES[config.police]?.fontFamily ??
             "system-ui, -apple-system, sans-serif",
     };
 
+    // ─── Rendu ───────────────────────────────────────────────────────────────
     return (
         <>
-            <Navbar onAide={handleOuvrirAide} />
+            <Navbar
+                onAide={handleOuvrirAide}
+                onBilan={handleOuvrirBilan}
+                verrouille={config.verrouille}
+            />
             <NavbarSpacer />
 
             <main
@@ -178,9 +254,20 @@ function App() {
                     onRecommencer={handleRecommencer}
                 />
             </main>
+
+            {/* Modales hors flux principal */}
             <HelpModal
                 estVisible={modalAideVisible}
                 onFermer={handleFermerAide}
+            />
+            <BilanPanel
+                estVisible={modalBilanVisible}
+                itemsLesPlusEchoues={itemsLesPlusEchoues}
+                totalTentatives={totalTentatives}
+                totalErreurs={totalErreurs}
+                hasDonnees={hasDonnees}
+                onReinitialiser={handleReinitialiserBilan}
+                onFermer={handleFermerBilan}
             />
         </>
     );
