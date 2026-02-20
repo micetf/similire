@@ -6,6 +6,17 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [0.9.1] - 2026-02-20 — Fix UI étiquettes
+
+### Corrigé
+
+- `EtiquetteCard` — taille de police adaptative selon longueur du contenu
+  (text-4xl → text-xl, plus min-w proportionnel) — plus de débordement
+- `ModelZone` — même logique d'adaptation, taille minimale de boîte
+  via min-w/min-h plutôt que w/h fixes
+- `ProposalGrid` — remplacement grid par flex-wrap justify-center :
+  centrage correct des rangées incomplètes (5→3+2, 7→4+3)
+
 ## [0.9.0] - 2026-02-20 — Sprint 8 : Layout et intégration MiCetF
 
 ### Ajouté
