@@ -7,8 +7,8 @@
  * Familles de confusion couvertes :
  * - Mots miroirs (inversion de l'ordre des lettres) : son/nos, les/sel
  * - Rimes orthographiques : main/nain/bain/pain
- * - Morphologie proche (1 lettre de différence) : chat/chats, mer/ver
- * - Confusion début/fin de mot : lapin/sapin, bouche/touche
+ * - Morphologie proche (1 lettre de différence) : chat/rat/mat, mer/ver/fer
+ * - Confusion début de mot : lapin/sapin, bouche/touche/mouche
  *
  * @module data/mots
  */
@@ -20,7 +20,6 @@ export const mots = [
     { id: "nos", valeur: "nos", distracteurs: ["son", "bon", "ton"] },
     { id: "les", valeur: "les", distracteurs: ["sel", "des", "ses"] },
     { id: "sel", valeur: "sel", distracteurs: ["les", "del", "vel"] },
-    { id: "sur", valeur: "sur", distracteurs: ["rus", "sub", "sur"] },
     { id: "lit", valeur: "lit", distracteurs: ["til", "bit", "kit"] },
 
     // Rimes orthographiques en -ain
@@ -29,7 +28,7 @@ export const mots = [
     { id: "bain", valeur: "bain", distracteurs: ["main", "nain", "pain"] },
     { id: "pain", valeur: "pain", distracteurs: ["main", "nain", "bain"] },
 
-    // Rimes en -at / -as
+    // Rimes en -at
     { id: "chat", valeur: "chat", distracteurs: ["chap", "char", "chas"] },
     { id: "rat", valeur: "rat", distracteurs: ["mat", "bat", "fat"] },
     { id: "mat", valeur: "mat", distracteurs: ["rat", "bat", "fat"] },
