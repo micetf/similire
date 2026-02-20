@@ -6,6 +6,36 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.5.0] - 2026-02-20 — Sprint D : Tableau de bord enseignant
+
+### Ajouté
+
+- `src/hooks/useBilan.js` — collecte et persistance du bilan par item
+  (tentatives + erreurs, localStorage, réinitialisable manuellement)
+- `src/components/bilan/BilanPanel.jsx` — panneau bilan enseignant :
+  synthèse globale, top 5 items difficiles avec barres de taux d'erreur
+
+### Modifié
+
+- `src/constants.js` — clé `CLES_STORAGE.BILAN`
+- `src/utils/storage.js` — fonctions `loadBilanFromStorage` et `saveBilanToStorage`
+- `src/hooks/useGameEngine.js` — callback `onNouveauTour` dans `allerTourSuivant`
+  et `recommencer`, sliding window `.slice(-SEUIL_BREVET)` pour le critère brevet
+- `src/components/config/ConfigPanel.jsx` — labels fluidité en secondes totales
+  (30s / 60s / 90s au lieu de 3s / 6s / 9s)
+- `src/components/layout/Navbar.jsx` — bouton Bilan (masqué si verrouillé)
+- `src/App.jsx` — intégration complète useBilan, enregistrement tentatives
+  via callbacks, enregistrement erreurs sur clic incorrect
+- `src/data/aide.js` — correction descriptions seuil fluidité et critère brevet
+
+### Règles métier
+
+- 1 tentative = 1 tour présenté (enregistrée à l'affichage, pas à la réussite)
+- 1 erreur = 1 clic incorrect (peut dépasser le nombre de tentatives)
+- Bilan conservé après brevet — réinitialisable uniquement via BilanPanel
+- Critère brevet : fiabilité (10 réussites consécutives) ET fluidité
+  (moyenne glissante des 10 derniers temps ≤ seuil)
+
 ## [1.4.0] - 2026-02-20 — Sprint HelpModal : Aide pédagogique
 
 ### Ajouté
