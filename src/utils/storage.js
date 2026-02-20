@@ -109,3 +109,29 @@ export function saveConfigToStorage(config) {
         // localStorage indisponible — l'application continue sans persistance
     }
 }
+
+/**
+ * Vérifie si l'aide a déjà été affichée lors d'une session précédente.
+ *
+ * @returns {boolean}
+ */
+export function hasAideVue() {
+    try {
+        return localStorage.getItem(CLES_STORAGE.AIDE_VUE) === "1";
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Marque l'aide comme vue dans localStorage.
+ *
+ * @returns {void}
+ */
+export function markAideVue() {
+    try {
+        localStorage.setItem(CLES_STORAGE.AIDE_VUE, "1");
+    } catch {
+        // localStorage indisponible — pas bloquant
+    }
+}
