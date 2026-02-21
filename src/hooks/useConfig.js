@@ -3,13 +3,13 @@
  *
  * Responsabilités :
  * - Stocker l'état de configuration (type d'unité, propositions, mode TNI,
- *   verrouillage, police d'apprentissage)
+ *   verrouillage, police d'apprentissage, mode focus APC)
  * - Persister dans localStorage les réglages enseignant
  * - Exposer des setters atomiques conformes au pattern DRY (écriture directe,
  *   jamais via useEffect)
  *
- * Ce qui est persisté    : typeUnite, nbPropositions, police
- * Ce qui ne l'est pas    : modeTni, verrouille (état de session uniquement)
+ * Ce qui est persisté    : typeUnite, nbPropositions, police, delaiMaxFluidite
+ * Ce qui ne l'est pas    : modeTni, verrouille, modeFocus (états de session uniquement)
  *
  * @module hooks/useConfig
  */
@@ -29,13 +29,13 @@ import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
 
 /**
  * @typedef {Object} Config
- * @property {TypeUnite} typeUnite      - Type d'unité linguistique sélectionné
- * @property {number}    nbPropositions - Nombre d'étiquettes proposées (2–8)
- * @property {boolean}   modeTni        - Mode TNI activé (non persisté)
- * @property {boolean}   verrouille     - Configuration verrouillée (non persisté)
- * @property {string}    police         - Identifiant de la police d'apprentissage
+ * @property {TypeUnite} typeUnite        - Type d'unité linguistique sélectionné
+ * @property {number}    nbPropositions   - Nombre d'étiquettes proposées (2–8)
+ * @property {boolean}   modeTni          - Mode TNI activé (non persisté)
+ * @property {boolean}   verrouille       - Configuration verrouillée (non persisté)
+ * @property {string}    police           - Identifiant de la police d'apprentissage
  * @property {number}    delaiMaxFluidite - Seuil de fluidité en ms (persisté)
-
+ * @property {boolean}   modeFocus        - Mode focus APC actif (non persisté, Sprint E)
  */
 
 /**
@@ -49,6 +49,8 @@ import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
  *   toggleModeTni: function(): void,
  *   toggleVerrouillage: function(): void,
  *   setPolice: function(string): void,
+ *   setDelaiMaxFluidite: function(number): void,
+ *   setModeFocus: function(boolean): void,
  * }}
  */
 export function useConfig() {
@@ -118,6 +120,17 @@ export function useConfig() {
         saveConfigToStorage(next);
     };
 
+    /**
+     * Active ou désactive le mode focus APC.
+     * Non persisté — état de session uniquement.
+     * L'activation cible les items dont le taux d'erreur dépasse SEUIL_ERREUR_FOCUS.
+     *
+     * @param {boolean} actif
+     */
+    const setModeFocus = (actif) => {
+        setConfig((prev) => ({ ...prev, modeFocus: actif }));
+    };
+
     return {
         config,
         setTypeUnite,
@@ -126,5 +139,6 @@ export function useConfig() {
         toggleVerrouillage,
         setPolice,
         setDelaiMaxFluidite,
+        setModeFocus,
     };
 }

@@ -1,7 +1,17 @@
 /**
  * Indicateur de progression de l'élève.
- * Le format s'adapte au type d'unité.
- * Un point thermique discret signale l'état de fluidité sur tous les modes.
+ *
+ * Repositionné dans le flux normal (plus de `fixed`) — barre horizontale
+ * pleine largeur entre NavbarSpacer et ConfigPanel.
+ *
+ * Motivations UX :
+ * - Zone haute = zone naturelle d'attention enfant (eye-tracking CP/CE1)
+ * - Lisible à distance TNI (largeur pleine, pas de coin perdu)
+ * - Feedback proximal de l'action (au-dessus du jeu)
+ * - Label fluidité textuel → lisible enseignant à 2m vs point de 8px
+ *
+ * Fluidité exprimée en items/min (référence orthophonie/fluence) plutôt
+ * qu'en secondes totales pour 10 items.
  *
  * @module components/progress/ProgressIndicator
  */
@@ -9,54 +19,108 @@
 import PropTypes from "prop-types";
 import { SEUIL_BREVET } from "@constants";
 
+// ─── Utilitaires ─────────────────────────────────────────────────────────────
+
 /**
- * Calcule la couleur thermique selon le temps moyen et le seuil.
+ * Convertit un temps moyen (ms/item) en débit (items/min), arrondi.
  *
- * - Vert  : tempsMoyen < seuil × 0.8 (clairement fluide)
- * - Orange : tempsMoyen < seuil (borderline)
- * - Rouge  : tempsMoyen >= seuil (pas fluide)
- * - Gris   : pas encore de données
- *
- * @param {number|null} tempsMoyen       - Temps moyen en ms, null si pas de données
- * @param {number}      delaiMaxFluidite - Seuil en ms
- * @returns {string} Classe Tailwind de couleur
+ * @param {number} tempsMoyen - Temps moyen en ms
+ * @returns {number}
  */
-function classeCouleurThermique(tempsMoyen, delaiMaxFluidite) {
-    if (tempsMoyen === null) return "bg-gray-300";
-    if (tempsMoyen < delaiMaxFluidite * 0.8) return "bg-green-500";
-    if (tempsMoyen < delaiMaxFluidite) return "bg-orange-400";
-    return "bg-red-500";
+function tempsEnDebit(tempsMoyen) {
+    return Math.round(60000 / tempsMoyen);
 }
 
 /**
- * Point coloré indiquant l'état de fluidité.
+ * Retourne la catégorie de fluidité selon le temps moyen et le seuil.
+ *
+ * @param {number|null} tempsMoyen
+ * @param {number}      delaiMaxFluidite
+ * @returns {'rapide'|'limite'|'lent'|'vide'}
+ */
+function categorieFluidite(tempsMoyen, delaiMaxFluidite) {
+    if (tempsMoyen === null) return "vide";
+    if (tempsMoyen < delaiMaxFluidite * 0.8) return "rapide";
+    if (tempsMoyen < delaiMaxFluidite) return "limite";
+    return "lent";
+}
+
+// ─── Sous-composants ─────────────────────────────────────────────────────────
+
+/**
+ * Label de fluidité textuel — lisible à distance TNI.
+ * Exprimé en items/min, avec icône et couleur sémantique.
  *
  * @param {Object}      props
- * @param {number|null} props.tempsMoyen       - Temps moyen en ms
- * @param {number}      props.delaiMaxFluidite - Seuil en ms
- * @returns {JSX.Element}
+ * @param {number|null} props.tempsMoyen
+ * @param {number}      props.delaiMaxFluidite
+ * @param {string}      props.typeUnite
  */
-function PointThermique({ tempsMoyen, delaiMaxFluidite }) {
-    const couleur = classeCouleurThermique(tempsMoyen, delaiMaxFluidite);
-    const label =
-        tempsMoyen === null
-            ? "Fluidité : pas encore de données"
-            : `Fluidité : ${(tempsMoyen / 1000).toFixed(1)}s en moyenne`;
+function LabelFluidite({ tempsMoyen, delaiMaxFluidite, typeUnite }) {
+    const categorie = categorieFluidite(tempsMoyen, delaiMaxFluidite);
+
+    const LABELS_UNITE = {
+        lettre: "l/min",
+        syllabe: "syl/min",
+        mot: "mots/min",
+    };
+    const unite = LABELS_UNITE[typeUnite] ?? "items/min";
+
+    if (categorie === "vide") {
+        return (
+            <span className="text-sm text-gray-400 tabular-nums">
+                — {unite}
+            </span>
+        );
+    }
+
+    const debit = tempsEnDebit(tempsMoyen);
+
+    const styles = {
+        rapide: {
+            icone: "⚡",
+            classe: "text-green-600 font-semibold",
+            label: `${debit} ${unite}`,
+            title: "Fluide",
+        },
+        limite: {
+            icone: "⏱",
+            classe: "text-orange-500 font-semibold",
+            label: `${debit} ${unite}`,
+            title: "Limite de fluidité",
+        },
+        lent: {
+            icone: "🐢",
+            classe: "text-red-500 font-semibold",
+            label: `${debit} ${unite}`,
+            title: "Pas encore fluide",
+        },
+    };
+
+    const { icone, classe, label, title } = styles[categorie];
 
     return (
         <span
-            className={`inline-block w-2 h-2 rounded-full shrink-0 ${couleur}`}
-            aria-label={label}
-            title={label}
-        />
+            className={`flex items-center gap-1 text-sm tabular-nums ${classe}`}
+            title={title}
+            aria-label={`Fluidité : ${label} — ${title}`}
+        >
+            <span aria-hidden="true">{icone}</span>
+            {label}
+        </span>
     );
 }
 
-PointThermique.propTypes = {
+LabelFluidite.propTypes = {
     tempsMoyen: PropTypes.number,
     delaiMaxFluidite: PropTypes.number.isRequired,
+    typeUnite: PropTypes.string.isRequired,
 };
 
+/**
+ * Indicateur étoiles — mode lettre.
+ * 5 étoiles, 1 étoile par tranche de 2 réussites.
+ */
 function IndicateurEtoiles({ score }) {
     const nbEtoiles = 5;
     const etoilesPleine = Math.min(Math.floor(score / 2), nbEtoiles);
@@ -81,10 +145,11 @@ function IndicateurEtoiles({ score }) {
     );
 }
 
-IndicateurEtoiles.propTypes = {
-    score: PropTypes.number.isRequired,
-};
+IndicateurEtoiles.propTypes = { score: PropTypes.number.isRequired };
 
+/**
+ * Indicateur barre de progression — mode syllabe.
+ */
 function IndicateurBarre({ score }) {
     const pourcentage = Math.min((score / SEUIL_BREVET) * 100, 100);
 
@@ -103,17 +168,18 @@ function IndicateurBarre({ score }) {
                     style={{ width: `${pourcentage}%` }}
                 />
             </div>
-            <span className="text-sm font-medium text-gray-600 tabular-nums">
+            <span className="text-sm font-medium text-gray-600 tabular-nums w-10 shrink-0">
                 {score}/{SEUIL_BREVET}
             </span>
         </div>
     );
 }
 
-IndicateurBarre.propTypes = {
-    score: PropTypes.number.isRequired,
-};
+IndicateurBarre.propTypes = { score: PropTypes.number.isRequired };
 
+/**
+ * Indicateur numérique série/total — mode mot.
+ */
 function IndicateurNumerique({ score, scoreTotal }) {
     return (
         <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -121,7 +187,9 @@ function IndicateurNumerique({ score, scoreTotal }) {
                 Série :{" "}
                 <strong className="text-blue-600 tabular-nums">{score}</strong>
             </span>
-            <span className="text-gray-300">|</span>
+            <span className="text-gray-300" aria-hidden="true">
+                |
+            </span>
             <span>
                 Total :{" "}
                 <strong className="text-gray-800 tabular-nums">
@@ -138,15 +206,45 @@ IndicateurNumerique.propTypes = {
 };
 
 /**
- * Indicateur de progression — format adapté au type d'unité
- * + point thermique de fluidité sur tous les modes.
+ * Badge brevet cliquable — rouvre la modale si fermée sans action.
+ */
+function BadgeBrevet({ onOuvrirBrevet }) {
+    return (
+        <button
+            onClick={onOuvrirBrevet}
+            className="flex items-center gap-1.5 px-3 py-1
+                       bg-yellow-400 hover:bg-yellow-300
+                       text-yellow-900 font-semibold text-sm
+                       rounded-full shadow-sm transition-colors
+                       animate-pulse"
+            title="Ton brevet est prêt ! Clique pour l'afficher."
+            aria-label="Brevet disponible — cliquer pour ouvrir"
+        >
+            <span aria-hidden="true">🎓</span>
+            Brevet !
+        </button>
+    );
+}
+
+BadgeBrevet.propTypes = {
+    onOuvrirBrevet: PropTypes.func.isRequired,
+};
+
+// ─── Composant principal ──────────────────────────────────────────────────────
+
+/**
+ * Barre de progression horizontale pleine largeur.
+ * Positionnée dans le flux normal, entre NavbarSpacer et ConfigPanel.
  *
  * @param {Object}      props
- * @param {number}      props.score             - Score consécutif courant
- * @param {number}      props.scoreTotal        - Total de bonnes réponses
- * @param {string}      props.typeUnite         - Type d'unité courant
- * @param {number|null} props.tempsMoyen        - Temps moyen par réponse (ms)
- * @param {number}      props.delaiMaxFluidite  - Seuil de fluidité (ms)
+ * @param {number}      props.score              - Score consécutif courant
+ * @param {number}      props.scoreTotal         - Total de bonnes réponses
+ * @param {string}      props.typeUnite          - Type d'unité courant
+ * @param {number|null} props.tempsMoyen         - Temps moyen par réponse (ms)
+ * @param {number}      props.delaiMaxFluidite   - Seuil de fluidité (ms)
+ * @param {boolean}     props.modeFocus          - Mode focus APC actif
+ * @param {boolean}     props.brevetDisponible   - Brevet débloqué, modale fermée
+ * @param {Function}    props.onOuvrirBrevet     - Rouvre la modale brevet
  * @returns {JSX.Element}
  */
 function ProgressIndicator({
@@ -155,22 +253,66 @@ function ProgressIndicator({
     typeUnite,
     tempsMoyen,
     delaiMaxFluidite,
+    modeFocus,
+    brevetDisponible,
+    onOuvrirBrevet,
 }) {
     return (
-        <div className="fixed bottom-4 left-4 bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2">
-            <div className="flex items-center gap-3">
-                {typeUnite === "lettre" && <IndicateurEtoiles score={score} />}
-                {typeUnite === "syllabe" && <IndicateurBarre score={score} />}
-                {typeUnite === "mot" && (
-                    <IndicateurNumerique
-                        score={score}
-                        scoreTotal={scoreTotal}
+        <div
+            className="w-full bg-white border border-gray-200 rounded-xl
+                        shadow-sm px-4 py-2"
+        >
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+                {/* Gauche — indicateur de score selon le type d'unité */}
+                <div className="flex items-center gap-3">
+                    {typeUnite === "lettre" && (
+                        <IndicateurEtoiles score={score} />
+                    )}
+                    {typeUnite === "syllabe" && (
+                        <IndicateurBarre score={score} />
+                    )}
+                    {typeUnite === "mot" && (
+                        <IndicateurNumerique
+                            score={score}
+                            scoreTotal={scoreTotal}
+                        />
+                    )}
+                </div>
+
+                {/* Droite — fluidité + badges contextuels */}
+                <div className="flex items-center gap-3 ml-auto">
+                    <LabelFluidite
+                        tempsMoyen={tempsMoyen}
+                        delaiMaxFluidite={delaiMaxFluidite}
+                        typeUnite={typeUnite}
                     />
-                )}
-                <PointThermique
-                    tempsMoyen={tempsMoyen}
-                    delaiMaxFluidite={delaiMaxFluidite}
-                />
+
+                    {/* Séparateur */}
+                    {(brevetDisponible || modeFocus) && (
+                        <div
+                            className="h-5 w-px bg-gray-200"
+                            aria-hidden="true"
+                        />
+                    )}
+
+                    {/* Badge brevet — visible si brevet disponible et modale fermée */}
+                    {brevetDisponible && (
+                        <BadgeBrevet onOuvrirBrevet={onOuvrirBrevet} />
+                    )}
+
+                    {/* Badge mode focus */}
+                    {modeFocus && (
+                        <span
+                            className="inline-flex items-center gap-1 text-sm
+                                       text-orange-600 font-semibold"
+                            title="Mode focus actif — corpus ciblé sur les items difficiles"
+                            aria-label="Mode focus actif"
+                        >
+                            <span aria-hidden="true">🎯</span>
+                            Focus
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -182,6 +324,9 @@ ProgressIndicator.propTypes = {
     typeUnite: PropTypes.string.isRequired,
     tempsMoyen: PropTypes.number,
     delaiMaxFluidite: PropTypes.number.isRequired,
+    modeFocus: PropTypes.bool.isRequired,
+    brevetDisponible: PropTypes.bool.isRequired,
+    onOuvrirBrevet: PropTypes.func.isRequired,
 };
 
 export default ProgressIndicator;

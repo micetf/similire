@@ -25,6 +25,35 @@ export const DELAI_SUCCES_MS = 600;
 /** Durée en ms du guidage discret (halo sur la réponse correcte) */
 export const DUREE_GUIDAGE_MS = 1000;
 
+// ─── Mode Focus APC ──────────────────────────────────────────────────────────
+
+/**
+ * Taux d'erreur minimum (erreurs / tentatives) pour qu'un item soit
+ * éligible au corpus focus. Valeur : 0.3 = 30 %.
+ */
+export const SEUIL_ERREUR_FOCUS = 0.3;
+
+/**
+ * Nombre minimum de tentatives pour qu'un item soit évalué en mode focus.
+ * En dessous de ce seuil, l'estimateur du taux est trop bruité.
+ * Aligné sur le seuil de itemsLesPlusEchoues dans useBilan (≥ 1).
+ */
+export const SEUIL_TENTATIVES_MIN_FOCUS = 1;
+
+/**
+ * Taille minimale du corpus focus.
+ * Si le nombre d'items éligibles est inférieur, on complète avec
+ * les items les moins bien maîtrisés.
+ */
+export const TAILLE_MIN_CORPUS_FOCUS = 4;
+
+/**
+ * Taille maximale du corpus focus.
+ * Cohérent avec la capacité mémorielle de travail (Miller, 7 ± 2)
+ * et le système Leitner niveau 1.
+ */
+export const TAILLE_MAX_CORPUS_FOCUS = 8;
+
 // ─── Stockage ─────────────────────────────────────────────────────────────────
 
 /** Clés de stockage localStorage */

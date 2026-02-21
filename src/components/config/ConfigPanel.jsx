@@ -1,7 +1,10 @@
 /**
  * Panneau de configuration enseignant.
- * Permet de régler le type d'unité, le nombre de propositions,
- * le mode TNI, le verrouillage et la police d'apprentissage.
+ *
+ * Sprint E : badge "Mode focus" + bouton "Désactiver".
+ * Correctif unité fluidité : libellés en items/min.
+ * Réorganisation UX : ordre pédagogique → opérationnel
+ *   Type d'unité → Nb propositions → Police → Fluidité → TNI → [Focus] → Verrou
  *
  * @module components/config/ConfigPanel
  */
@@ -19,10 +22,6 @@ import {
 
 // ─── Icônes ──────────────────────────────────────────────────────────────────
 
-/**
- * Icône cadenas — verrouillé.
- * @returns {JSX.Element}
- */
 function IconeCadenas() {
     return (
         <svg
@@ -40,10 +39,6 @@ function IconeCadenas() {
     );
 }
 
-/**
- * Icône cadenas — déverrouillé.
- * @returns {JSX.Element}
- */
 function IconeCadenasOuvert() {
     return (
         <svg
@@ -61,10 +56,6 @@ function IconeCadenasOuvert() {
     );
 }
 
-/**
- * Icône écran TNI.
- * @returns {JSX.Element}
- */
 function IconeEcran() {
     return (
         <svg
@@ -82,11 +73,6 @@ function IconeEcran() {
     );
 }
 
-/**
- * Indicateur visuel du sélecteur de police — texte "Aa".
- * Plus explicite qu'une icône abstraite pour un réglage typographique.
- * @returns {JSX.Element}
- */
 function LabelPolice() {
     return (
         <span className="text-sm font-semibold text-gray-500 select-none">
@@ -95,10 +81,72 @@ function LabelPolice() {
     );
 }
 
-// ─── Composant ───────────────────────────────────────────────────────────────
+// ─── Utilitaires ─────────────────────────────────────────────────────────────
+
+/**
+ * Labels courts de l'unité pour les boutons de fluidité.
+ * Cohérents avec LabelFluidite dans ProgressIndicator et useBrevet.
+ */
+const LABELS_UNITE_FLUIDITE = {
+    lettre: "l/min",
+    syllabe: "syl/min",
+    mot: "mots/min",
+};
+
+/**
+ * Convertit un seuil en ms en débit items/min, arrondi.
+ * 3000 ms → 20/min | 6000 ms → 10/min | 9000 ms → 7/min
+ *
+ * @param {number} delaiMs
+ * @returns {number}
+ */
+function delaiEnDebit(delaiMs) {
+    return Math.round(60000 / delaiMs);
+}
+
+// ─── Séparateur ──────────────────────────────────────────────────────────────
+
+function Separateur() {
+    return (
+        <div
+            className="h-8 w-px bg-gray-200 hidden sm:block"
+            aria-hidden="true"
+        />
+    );
+}
+
+// ─── Sous-composants ─────────────────────────────────────────────────────────
+
+/**
+ * Badge "Mode focus" — information contextuelle visible en état verrouillé.
+ */
+function BadgeModeFocus() {
+    return (
+        <span
+            className="inline-flex items-center gap-1.5 px-3 py-1
+                        bg-orange-100 text-orange-700 border border-orange-300
+                        text-sm font-semibold rounded-full select-none"
+            title="Mode focus APC actif — corpus ciblé sur les items difficiles"
+        >
+            <span aria-hidden="true">🎯</span>
+            Mode focus
+        </span>
+    );
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 
 /**
  * Panneau de configuration enseignant.
+ *
+ * Ordre des contrôles — logique pédagogique → opérationnelle :
+ *   1. Type d'unité      — "Qu'est-ce qu'on travaille ?"
+ *   2. Nb propositions   — "À quel niveau de difficulté ?"
+ *   3. Police            — "Avec quelle typographie ?"
+ *   4. Fluidité          — "Avec quel critère de réussite ?"
+ *   5. TNI               — "Dans quel contexte matériel ?"
+ *   6. Mode focus        — état contextuel actif (si activé)
+ *   7. Verrouillage      — action finale invariable
  *
  * @param {Object}   props
  * @param {Object}   props.config               - Configuration courante
@@ -107,6 +155,8 @@ function LabelPolice() {
  * @param {Function} props.onToggleModeTni      - Bascule le mode TNI
  * @param {Function} props.onToggleVerrouillage - Bascule le verrouillage
  * @param {Function} props.onPolice             - Change la police d'apprentissage
+ * @param {Function} props.onDelaiMaxFluidite   - Change le seuil de fluidité
+ * @param {Function} props.onDesactiverFocus    - Désactive le mode focus APC
  * @returns {JSX.Element}
  */
 function ConfigPanel({
@@ -117,6 +167,7 @@ function ConfigPanel({
     onToggleVerrouillage,
     onPolice,
     onDelaiMaxFluidite,
+    onDesactiverFocus,
 }) {
     const {
         typeUnite,
@@ -125,12 +176,19 @@ function ConfigPanel({
         verrouille,
         police,
         delaiMaxFluidite,
+        modeFocus,
     } = config;
 
-    // En mode verrouillé, seul le bouton de déverrouillage est visible
+    const uniteFluidite = LABELS_UNITE_FLUIDITE[typeUnite] ?? "items/min";
+
+    // ── Mode verrouillé ──────────────────────────────────────────────────────
+    // Seuls le cadenas et le badge mode focus sont visibles.
+    // Le bouton "Désactiver" est masqué : l'élève ne doit pas pouvoir
+    // sortir du mode focus activé par l'enseignant.
     if (verrouille) {
         return (
-            <div className="flex justify-end w-full px-4">
+            <div className="flex items-center justify-end w-full px-4 gap-3 py-1">
+                {modeFocus && <BadgeModeFocus />}
                 <button
                     onClick={onToggleVerrouillage}
                     className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -143,10 +201,11 @@ function ConfigPanel({
         );
     }
 
+    // ── Mode non verrouillé ──────────────────────────────────────────────────
     return (
         <div className="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4">
             <div className="flex flex-wrap items-center gap-3 justify-center">
-                {/* Sélecteur de type d'unité */}
+                {/* 1. Type d'unité */}
                 <div
                     className="flex rounded-lg border border-gray-300 overflow-hidden"
                     role="group"
@@ -161,7 +220,7 @@ function ConfigPanel({
                                 ${
                                     typeUnite === type
                                         ? "bg-blue-600 text-white"
-                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                        : "bg-white text-gray-600 hover:bg-gray-50"
                                 }
                             `}
                             aria-pressed={typeUnite === type}
@@ -171,56 +230,65 @@ function ConfigPanel({
                     ))}
                 </div>
 
-                {/* Compteur de propositions */}
+                <Separateur />
+
+                {/* 2. Nombre de propositions */}
                 <div
-                    className="flex items-center rounded-lg border border-gray-300 overflow-hidden"
+                    className="flex items-center gap-1"
                     role="group"
                     aria-label="Nombre de propositions"
                 >
                     <button
                         onClick={() => onNbPropositions(nbPropositions - 1)}
                         disabled={nbPropositions <= NB_PROPOSITIONS_MIN}
-                        className="px-3 py-2 bg-white text-gray-700 hover:bg-gray-50
-                                   disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg
+                                   border border-gray-300 text-gray-600
+                                   hover:bg-gray-50 disabled:opacity-40
+                                   disabled:cursor-not-allowed transition-colors
+                                   text-lg font-medium"
                         aria-label="Diminuer le nombre de propositions"
                     >
                         −
                     </button>
-                    <span
-                        className="px-3 py-2 text-sm font-semibold text-gray-800 bg-white min-w-[2.5rem] text-center"
-                        aria-live="polite"
-                        aria-label={`${nbPropositions} propositions`}
-                    >
-                        {nbPropositions}
-                    </span>
+                    <input
+                        type="number"
+                        value={nbPropositions}
+                        min={NB_PROPOSITIONS_MIN}
+                        max={NB_PROPOSITIONS_MAX}
+                        onChange={(e) =>
+                            onNbPropositions(parseInt(e.target.value, 10))
+                        }
+                        className="w-12 text-center text-sm font-semibold
+                                   border border-gray-300 rounded-lg py-1.5
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="Nombre de propositions"
+                    />
                     <button
                         onClick={() => onNbPropositions(nbPropositions + 1)}
                         disabled={nbPropositions >= NB_PROPOSITIONS_MAX}
-                        className="px-3 py-2 bg-white text-gray-700 hover:bg-gray-50
-                                   disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg
+                                   border border-gray-300 text-gray-600
+                                   hover:bg-gray-50 disabled:opacity-40
+                                   disabled:cursor-not-allowed transition-colors
+                                   text-lg font-medium"
                         aria-label="Augmenter le nombre de propositions"
                     >
                         +
                     </button>
                 </div>
 
-                {/* Sélecteur de police d'apprentissage */}
-                <div
-                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 bg-white"
-                    role="group"
-                    aria-label="Police d'apprentissage"
-                >
+                <Separateur />
+
+                {/* 3. Police d'apprentissage */}
+                <div className="flex items-center gap-2">
                     <LabelPolice />
                     <select
                         value={police}
                         onChange={(e) => onPolice(e.target.value)}
-                        className="text-sm text-gray-700 bg-transparent border-none outline-none
-                                   cursor-pointer pr-1"
-                        aria-label="Choisir la police d'apprentissage"
-                        title={
-                            POLICES_DISPONIBLES[police]?.info ??
-                            "Police d'apprentissage"
-                        }
+                        className="text-sm border border-gray-300 rounded-lg
+                                   py-1.5 px-2 focus:outline-none
+                                   focus:ring-2 focus:ring-blue-500 bg-white"
+                        aria-label="Police d'apprentissage"
                     >
                         {Object.entries(POLICES_DISPONIBLES).map(
                             ([id, def]) => (
@@ -232,42 +300,46 @@ function ConfigPanel({
                     </select>
                 </div>
 
-                {/* Séparateur visuel */}
-                <div
-                    className="h-8 w-px bg-gray-200 hidden sm:block"
-                    aria-hidden="true"
-                />
+                <Separateur />
 
-                {/* Sélecteur seuil de fluidité — libellé en secondes totales pour 10 réponses */}
+                {/* 4. Seuil de fluidité — en items/min (référence fluence lecture)
+                    Ordre : du plus accessible (7/min) au plus exigeant (20/min)
+                    correspondant à 90s → 60s → 30s pour 10 réponses */}
                 <div
                     className="flex rounded-lg border border-gray-300 overflow-hidden"
                     role="group"
-                    aria-label="Seuil de fluidité pour 10 réponses"
+                    aria-label={`Seuil de fluidité en ${uniteFluidite}`}
                 >
-                    {DELAIS_FLUIDITE.map((delai) => {
-                        const secondesTotales = (delai / 1000) * SEUIL_BREVET;
-                        return (
-                            <button
-                                key={delai}
-                                onClick={() => onDelaiMaxFluidite(delai)}
-                                className={`
-                    px-3 py-2 text-sm font-medium transition-colors
-                    ${
-                        delaiMaxFluidite === delai
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-600 hover:bg-gray-50"
-                    }
-                `}
-                                aria-pressed={delaiMaxFluidite === delai}
-                                title={`10 réponses en moins de ${secondesTotales}s`}
-                            >
-                                {secondesTotales}s
-                            </button>
-                        );
-                    })}
+                    {DELAIS_FLUIDITE.slice()
+                        .sort((a, b) => b - a)
+                        .map((delai) => {
+                            const debit = delaiEnDebit(delai);
+                            const secondesTotales =
+                                (delai / 1000) * SEUIL_BREVET;
+                            return (
+                                <button
+                                    key={delai}
+                                    onClick={() => onDelaiMaxFluidite(delai)}
+                                    className={`
+                                        px-3 py-2 text-sm font-medium transition-colors
+                                        ${
+                                            delaiMaxFluidite === delai
+                                                ? "bg-blue-600 text-white"
+                                                : "bg-white text-gray-600 hover:bg-gray-50"
+                                        }
+                                    `}
+                                    aria-pressed={delaiMaxFluidite === delai}
+                                    title={`${debit} ${uniteFluidite} — 10 réponses en moins de ${secondesTotales}s`}
+                                >
+                                    {debit} {uniteFluidite}
+                                </button>
+                            );
+                        })}
                 </div>
 
-                {/* Bouton mode TNI */}
+                <Separateur />
+
+                {/* 5. Mode TNI */}
                 <button
                     onClick={onToggleModeTni}
                     className={`
@@ -286,7 +358,24 @@ function ConfigPanel({
                     <span>TNI</span>
                 </button>
 
-                {/* Bouton verrouillage */}
+                {/* 6. Mode focus (si actif) — état contextuel, côté droit avant verrou */}
+                {modeFocus && (
+                    <>
+                        <Separateur />
+                        <BadgeModeFocus />
+                        <button
+                            onClick={onDesactiverFocus}
+                            className="px-3 py-2 text-sm font-medium rounded-lg
+                                       border border-orange-300 text-orange-600
+                                       hover:bg-orange-50 transition-colors"
+                            title="Revenir au corpus complet"
+                        >
+                            Désactiver
+                        </button>
+                    </>
+                )}
+
+                {/* 7. Verrouillage — toujours en dernier */}
                 <button
                     onClick={onToggleVerrouillage}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
@@ -310,6 +399,7 @@ ConfigPanel.propTypes = {
         verrouille: PropTypes.bool.isRequired,
         police: PropTypes.string.isRequired,
         delaiMaxFluidite: PropTypes.number.isRequired,
+        modeFocus: PropTypes.bool.isRequired,
     }).isRequired,
     onTypeUnite: PropTypes.func.isRequired,
     onNbPropositions: PropTypes.func.isRequired,
@@ -317,6 +407,7 @@ ConfigPanel.propTypes = {
     onToggleVerrouillage: PropTypes.func.isRequired,
     onPolice: PropTypes.func.isRequired,
     onDelaiMaxFluidite: PropTypes.func.isRequired,
+    onDesactiverFocus: PropTypes.func.isRequired,
 };
 
 export default ConfigPanel;

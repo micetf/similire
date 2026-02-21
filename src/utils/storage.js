@@ -15,7 +15,7 @@ import {
 
 /**
  * Configuration persistée dans localStorage.
- * Sous-ensemble de Config — exclut modeTni et verrouille (état de session).
+ * Sous-ensemble de Config — exclut modeTni, verrouille et modeFocus (état de session).
  *
  * @typedef {Object} ConfigPersistee
  * @property {string} typeUnite         - Type d'unité linguistique
@@ -26,7 +26,9 @@ import {
 
 /**
  * Valeurs par défaut utilisées en l'absence de configuration persistée.
- * @type {ConfigPersistee}
+ * modeTni, verrouille et modeFocus sont des états de session — non persistés.
+ *
+ * @type {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }}
  */
 const CONFIG_DEFAUT = {
     typeUnite: TYPES_UNITE[0],
@@ -35,6 +37,7 @@ const CONFIG_DEFAUT = {
     delaiMaxFluidite: DELAI_MAX_FLUIDITE_DEFAUT,
     modeTni: false,
     verrouille: false,
+    modeFocus: false, // Sprint E — état de session, jamais persisté
 };
 
 /**
@@ -42,7 +45,7 @@ const CONFIG_DEFAUT = {
  * Retourne les valeurs par défaut si aucune config n'existe
  * ou si le JSON est corrompu.
  *
- * @returns {ConfigPersistee & { modeTni: boolean, verrouille: boolean }}
+ * @returns {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }}
  */
 export function loadConfigFromStorage() {
     try {
@@ -74,7 +77,7 @@ export function loadConfigFromStorage() {
                 : CONFIG_DEFAUT.delaiMaxFluidite;
 
         return {
-            ...CONFIG_DEFAUT,
+            ...CONFIG_DEFAUT, // inclut modeFocus: false — jamais lu depuis localStorage
             typeUnite,
             nbPropositions,
             police,
@@ -88,9 +91,9 @@ export function loadConfigFromStorage() {
 /**
  * Sauvegarde la configuration dans localStorage.
  * Seuls les champs persistés sont écrits —
- * modeTni et verrouille sont intentionnellement omis.
+ * modeTni, verrouille et modeFocus sont intentionnellement omis.
  *
- * @param {ConfigPersistee & { modeTni: boolean, verrouille: boolean }} config
+ * @param {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }} config
  * @returns {void}
  */
 export function saveConfigToStorage(config) {
