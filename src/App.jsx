@@ -2,6 +2,12 @@
  * Composant racine de SiMiLire.
  * Instancie les hooks et orchestre l'affichage.
  *
+ * Sprint E : câblage du mode focus APC.
+ *
+ * Fix brevet : ouverture de la modale via useEffect déclaratif sur
+ * brevetDisponible. Badge "Brevet !" dans ProgressIndicator permet
+ * de rouvrir la modale si elle a été fermée sans action.
+ *
  * @module App
  */
 
@@ -38,26 +44,8 @@ function App() {
         toggleVerrouillage,
         setPolice,
         setDelaiMaxFluidite,
+        setModeFocus,
     } = useConfig();
-
-    // ─── Moteur de jeu ──────────────────────────────────────────────────────
-    const {
-        gameState,
-        repondre,
-        allerTourSuivant,
-        recommencer,
-        demarrerChrono,
-    } = useGameEngine(config);
-
-    const {
-        tourCourant,
-        score,
-        scoreTotal,
-        statut,
-        brevetDisponible,
-        nbErreursTourCourant,
-        tempsMoyen,
-    } = gameState;
 
     // ─── Bilan ──────────────────────────────────────────────────────────────
     /**
@@ -75,6 +63,7 @@ function App() {
     }, []);
 
     const {
+        bilanBrut,
         itemsLesPlusEchoues,
         totalTentatives,
         totalErreurs,
@@ -83,6 +72,26 @@ function App() {
         enregistrerErreur,
         reinitialiser: reinitialiserBilan,
     } = useBilan(itemsIndex);
+
+    // ─── Moteur de jeu ──────────────────────────────────────────────────────
+    // bilanBrut est passé en second paramètre pour le calcul du corpus focus.
+    const {
+        gameState,
+        repondre,
+        allerTourSuivant,
+        recommencer,
+        demarrerChrono,
+    } = useGameEngine(config, bilanBrut);
+
+    const {
+        tourCourant,
+        score,
+        scoreTotal,
+        statut,
+        brevetDisponible,
+        nbErreursTourCourant,
+        tempsMoyen,
+    } = gameState;
 
     // ─── État des modales ────────────────────────────────────────────────────
     const [idClique, setIdClique] = useState(null);
@@ -100,11 +109,23 @@ function App() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // ─── Handlers jeu ───────────────────────────────────────────────────────
-    const handleBrevetDisponible = useCallback(() => {
-        if (brevetDisponible) setModalBrevetVisible(true);
+    // ─── Ouverture automatique de la modale brevet ───────────────────────────
+    /**
+     * Réagit déclarativement au passage de brevetDisponible à true.
+     * Pattern retenu : useEffect sur brevetDisponible plutôt qu'une lecture
+     * dans setTimeout — pas de stale closure, pas de dépendance au timing.
+     *
+     * Si l'élève ferme la modale sans agir, brevetDisponible reste true
+     * (recommencer() ne pas été appelé). Le badge dans ProgressIndicator
+     * reste visible et permet de rouvrir la modale via handleOuvrirBrevet.
+     */
+    useEffect(() => {
+        if (brevetDisponible) {
+            setModalBrevetVisible(true);
+        }
     }, [brevetDisponible]);
 
+    // ─── Handlers jeu ───────────────────────────────────────────────────────
     const handleRepondre = useCallback(
         (id) => {
             if (statut === "succes") return;
@@ -112,14 +133,14 @@ function App() {
             repondre(id);
 
             if (id === tourCourant.modele.id) {
-                // Bonne réponse — passer au tour suivant après délai visuel
+                // Bonne réponse — passer au tour suivant après le délai visuel.
+                // La détection du brevet est gérée par le useEffect ci-dessus.
                 setTimeout(() => {
                     setIdClique(null);
                     allerTourSuivant((nouvelItemId) => {
                         enregistrerTentative(nouvelItemId);
                     });
                     demarrerChrono();
-                    handleBrevetDisponible();
                 }, DELAI_SUCCES_MS);
             } else {
                 // Mauvaise réponse — enregistrer l'erreur sur l'item courant
@@ -132,7 +153,6 @@ function App() {
             allerTourSuivant,
             demarrerChrono,
             tourCourant.modele.id,
-            handleBrevetDisponible,
             enregistrerTentative,
             enregistrerErreur,
         ]
@@ -145,6 +165,12 @@ function App() {
     // ─── Handlers brevet ────────────────────────────────────────────────────
     const handleFermerModal = useCallback(() => {
         setModalBrevetVisible(false);
+        // brevetDisponible reste true dans useGameEngine — le badge
+        // dans ProgressIndicator reste visible pour rouvrir la modale.
+    }, []);
+
+    const handleOuvrirBrevet = useCallback(() => {
+        setModalBrevetVisible(true);
     }, []);
 
     const handleRecommencer = useCallback(() => {
@@ -152,6 +178,8 @@ function App() {
         recommencer((nouvelItemId) => {
             enregistrerTentative(nouvelItemId);
         });
+        // recommencer() remet brevetDisponible à false dans useGameEngine —
+        // le badge dans ProgressIndicator disparaît automatiquement.
     }, [recommencer, enregistrerTentative]);
 
     // ─── Handlers aide ──────────────────────────────────────────────────────
@@ -178,6 +206,24 @@ function App() {
         setModalBilanVisible(false);
     }, [reinitialiserBilan]);
 
+    // ─── Handlers mode focus (Sprint E) ─────────────────────────────────────
+
+    /**
+     * Active le mode focus APC et ferme le panneau bilan.
+     */
+    const handleTravaillerPointsDurs = useCallback(() => {
+        setModeFocus(true);
+        setModalBilanVisible(false);
+    }, [setModeFocus]);
+
+    /**
+     * Désactive le mode focus APC.
+     * Ne réinitialise ni le bilan ni le score.
+     */
+    const handleDesactiverFocus = useCallback(() => {
+        setModeFocus(false);
+    }, [setModeFocus]);
+
     // ─── Style police ────────────────────────────────────────────────────────
     const stylePolice = {
         "--font-jeu":
@@ -200,6 +246,18 @@ function App() {
                              items-center gap-6 p-4"
                 style={stylePolice}
             >
+                {/* Indicateur de progression */}
+                <ProgressIndicator
+                    score={score}
+                    scoreTotal={scoreTotal}
+                    typeUnite={config.typeUnite}
+                    tempsMoyen={tempsMoyen}
+                    delaiMaxFluidite={config.delaiMaxFluidite}
+                    modeFocus={config.modeFocus}
+                    brevetDisponible={brevetDisponible}
+                    onOuvrirBrevet={handleOuvrirBrevet}
+                />
+
                 {/* Panneau de configuration */}
                 <ConfigPanel
                     config={config}
@@ -209,6 +267,7 @@ function App() {
                     onToggleVerrouillage={toggleVerrouillage}
                     onPolice={setPolice}
                     onDelaiMaxFluidite={setDelaiMaxFluidite}
+                    onDesactiverFocus={handleDesactiverFocus}
                 />
 
                 {/* Zone modèle */}
@@ -235,15 +294,6 @@ function App() {
                     onReessayer={handleReessayer}
                 />
 
-                {/* Indicateur de progression */}
-                <ProgressIndicator
-                    score={score}
-                    scoreTotal={scoreTotal}
-                    typeUnite={config.typeUnite}
-                    tempsMoyen={tempsMoyen}
-                    delaiMaxFluidite={config.delaiMaxFluidite}
-                />
-
                 {/* Modale brevet */}
                 <BrevetModal
                     estVisible={modalBrevetVisible}
@@ -266,8 +316,10 @@ function App() {
                 totalTentatives={totalTentatives}
                 totalErreurs={totalErreurs}
                 hasDonnees={hasDonnees}
+                modeFocusActif={config.modeFocus}
                 onReinitialiser={handleReinitialiserBilan}
                 onFermer={handleFermerBilan}
+                onTravaillerPointsDurs={handleTravaillerPointsDurs}
             />
         </>
     );

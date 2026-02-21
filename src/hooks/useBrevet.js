@@ -19,10 +19,21 @@ const BREVET_WIDTH = 1587;
 const BREVET_HEIGHT = 1122;
 
 /**
+ * Labels d'unité pour la mention de fluidité sur le brevet.
+ * Cohérents avec ProgressIndicator et ConfigPanel.
+ */
+const LABELS_UNITE_FLUIDITE = {
+    lettre: "l/min",
+    syllabe: "syl/min",
+    mot: "mots/min",
+};
+
+/**
  * @typedef {Object} DonneesBrevet
- * @property {string} prenom        - Prénom de l'élève
- * @property {string} typeUnite     - Type d'unité travaillé
- * @property {number} nbPropositions - Nombre de propositions utilisées
+ * @property {string}      prenom         - Prénom de l'élève
+ * @property {string}      typeUnite      - Type d'unité travaillé
+ * @property {number}      nbPropositions - Nombre de propositions utilisées
+ * @property {number|null} tempsMoyen     - Temps moyen par réponse (ms), null si non mesuré
  */
 
 /**
@@ -68,7 +79,7 @@ export function useBrevet() {
             "#1d4ed8"
         );
 
-        // Séparateur
+        // Séparateur haut
         ctx.strokeStyle = "#93c5fd";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -108,7 +119,7 @@ export function useBrevet() {
         ctx.lineTo(BREVET_WIDTH - 120, 620);
         ctx.stroke();
 
-        // Date et mention
+        // Date
         ecrireCentre(
             ctx,
             `Obtenu le ${date}`,
@@ -117,16 +128,20 @@ export function useBrevet() {
             "#64748b"
         );
 
+        // Fluidité — exprimée en items/min, cohérente avec ProgressIndicator
         if (tempsMoyen !== null) {
+            const debit = Math.round(60000 / tempsMoyen);
+            const unite = LABELS_UNITE_FLUIDITE[typeUnite] ?? "items/min";
             ecrireCentre(
                 ctx,
-                `Fluidité : ${(tempsMoyen / 1000).toFixed(1)} s en moyenne`,
+                `Fluidité : ${debit} ${unite}`,
                 760,
                 "36px sans-serif",
                 "#64748b"
             );
         }
 
+        // Mention
         ecrireCentre(
             ctx,
             "micetf.fr — SiMiLire",
