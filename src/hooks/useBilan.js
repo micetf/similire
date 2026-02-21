@@ -20,7 +20,14 @@ import { loadBilanFromStorage, saveBilanToStorage } from "@utils/storage";
  */
 
 /**
+ * @typedef {Object} BilanBrut
+ * @property {Object.<string, number>} tentatives - Map id → nb tentatives
+ * @property {Object.<string, number>} erreurs    - Map id → nb erreurs
+ */
+
+/**
  * @typedef {Object} UseBilanReturn
+ * @property {BilanBrut}   bilanBrut            - Données brutes pour useGameEngine (mode focus)
  * @property {ItemBilan[]} itemsLesPlusEchoues  - Top 5 items par taux d'erreur
  * @property {number}      totalTentatives      - Total des tentatives
  * @property {number}      totalErreurs         - Total des erreurs
@@ -126,6 +133,9 @@ export function useBilan(itemsIndex) {
     }, [bilan, itemsIndex]);
 
     return {
+        // Sprint E — données brutes exposées pour useGameEngine uniquement.
+        // Ne pas consommer directement dans les composants.
+        bilanBrut: bilan,
         itemsLesPlusEchoues,
         totalTentatives,
         totalErreurs,
