@@ -6,6 +6,59 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.0] - 2026-02-21 — Sprint E : Mode focus APC + correctifs UX
+
+### Ajouté
+
+- `src/constants.js` — constantes `SEUIL_ERREUR_FOCUS`, `SEUIL_TENTATIVES_MIN_FOCUS`,
+  `TAILLE_MIN_CORPUS_FOCUS`, `TAILLE_MAX_CORPUS_FOCUS`
+- `src/hooks/useConfig.js` — champ `modeFocus` (état session, non persisté) + setter `setModeFocus`
+- `src/hooks/useGameEngine.js` — paramètre `bilanBrut`, fonction pure `calculerCorpusFocus`,
+  corpus dynamique `corpusFocus` (useMemo), `useEffect` de reset sur changement de mode,
+  brevet désactivé en mode focus
+- `src/hooks/useBilan.js` — exposition de `bilanBrut` (alias données brutes)
+- `src/components/bilan/BilanPanel.jsx` — bouton « Travailler les points durs »
+- `src/components/config/ConfigPanel.jsx` — badge 🎯 Mode focus + bouton Désactiver
+  (masqué en mode verrouillé)
+
+### Modifié
+
+- `src/utils/storage.js` — `modeFocus` exclu de la persistance (`saveConfigToStorage`
+  destructure explicitement les 4 champs persistés)
+- `src/App.jsx` — câblage complet mode focus (`handleTravaillerPointsDurs`,
+  `handleDesactiverFocus`) ; fix brevet : ouverture modale via `useEffect` déclaratif
+  sur `brevetDisponible` (suppression stale closure dans setTimeout) ;
+  ajout `handleOuvrirBrevet` pour rouvrir la modale depuis `ProgressIndicator`
+- `src/components/progress/ProgressIndicator.jsx` — repositionné dans le flux normal
+  (suppression `fixed bottom-4 left-4`) ; barre horizontale pleine largeur entre
+  `NavbarSpacer` et `ConfigPanel` ; point thermique remplacé par `LabelFluidite`
+  (⚡/⏱/🐢 + valeur en items/min) ; ajout `BadgeBrevet` cliquable (rouvre la modale
+  si fermée sans action) ; icône 🎯 mode focus intégrée
+- `src/components/config/ConfigPanel.jsx` — libellés fluidité en items/min
+  (7/10/20 selon typeUnite) ; ordre des contrôles révisé selon logique pédagogique →
+  opérationnelle (Type d'unité → Nb propositions → Police → Fluidité → TNI →
+  [Mode focus] → Verrouillage) ; composant `Separateur` extrait
+- `src/hooks/useBrevet.js` — mention fluidité sur le brevet en items/min
+  (cohérence avec `ProgressIndicator` et `ConfigPanel`)
+- `src/data/aide.js` — section "Bilan" ajoutée ; section "Configurer" complétée
+  avec entrée "Mode focus APC" ; descriptions fluidité mises à jour (items/min,
+  indicateur barre en haut) ; icône section fluidité mise à jour (⏱️ → ⚡)
+
+### Règles métier
+
+- Corpus focus : items avec ≥ 1 tentative ET taux d'erreur > 30%, 4-8 items
+  (complété si insuffisant), recalculé dynamiquement à chaque mise à jour du bilan
+- Distracteurs toujours issus du corpus complet (garantit nbPropositions)
+- Brevet désactivé en mode focus (corpus biaisé invalide l'évaluation sommative)
+- Désactivation mode focus sans reset score/bilan — continuité totale
+
+### Fix
+
+- Brevet ne se déclenchait pas : stale closure sur `brevetDisponible` dans `setTimeout` —
+  remplacé par `useEffect` déclaratif sur `brevetDisponible`
+- Brevet perdu si modale fermée sans action : badge 🎓 persistant dans `ProgressIndicator`
+  permet de rouvrir la modale tant que `brevetDisponible === true`
+
 ## [1.5.0] - 2026-02-20 — Sprint D : Tableau de bord enseignant
 
 ### Ajouté

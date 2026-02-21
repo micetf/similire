@@ -3,6 +3,10 @@
  * Chaque section correspond à un onglet dans HelpModal.
  * Ce fichier est la SEULE source à modifier pour mettre à jour l'aide.
  *
+ * MàJ Sprint E : section "Bilan" ajoutée ; "Configurer" complétée avec
+ * "Seuil de fluidité" et "Mode focus APC" ; section "Fluidité" mise à jour
+ * (indicateur en items/min, barre en haut, icône ⚡).
+ *
  * @module data/aide
  */
 
@@ -50,7 +54,7 @@ export const SECTIONS_AIDE = [
                 titre: "Guidage discret",
                 icone: "👉",
                 description:
-                    "Après deux erreurs sur le même tour, une flèche → apparaît discrètement sur la bonne réponse. Ce guidage limite les erreurs répétées en indiquant la bonne option, tout en laissant à l’élève l’action de valider sa réponse.",
+                    "Après deux erreurs sur le même tour, une flèche → apparaît discrètement sur la bonne réponse. Ce guidage limite les erreurs répétées en indiquant la bonne option, tout en laissant à l'élève l'action de valider sa réponse.",
             },
             {
                 titre: "Retour sur les erreurs",
@@ -84,6 +88,15 @@ export const SECTIONS_AIDE = [
                     "Aligner la police avec celle utilisée en classe. Andika et Atkinson Hyperlegible sont recommandées pour les élèves dyslexiques. OpenDyslexic est conçue pour les cas sévères.",
             },
             {
+                titre: "Seuil de fluidité",
+                icone: "🎚️",
+                description:
+                    "Régler la vitesse cible exprimée en items par minute. " +
+                    "7/min convient aux élèves en difficulté ou en début d'apprentissage, " +
+                    "10/min est adapté au CP/CE1 en consolidation (valeur par défaut), " +
+                    "20/min correspond à des élèves de CE2 bien automatisés.",
+            },
+            {
                 titre: "Mode TNI",
                 icone: "🖥️",
                 description:
@@ -95,12 +108,22 @@ export const SECTIONS_AIDE = [
                 description:
                     "Masque le panneau de configuration pour éviter les modifications accidentelles pendant l'activité. Un cadenas reste visible pour déverrouiller.",
             },
+            {
+                titre: "Mode focus APC",
+                icone: "🎯",
+                description:
+                    "Accessible depuis le tableau de bord, ce mode cible automatiquement " +
+                    "les items les plus souvent échoués par l'élève. " +
+                    "Idéal en APC ou en atelier de remédiation. " +
+                    "Le brevet est désactivé en mode focus (corpus biaisé). " +
+                    "L'enseignant peut désactiver ce mode depuis le panneau de configuration.",
+            },
         ],
     },
     {
         id: "fluidite",
         label: "Fluidité",
-        icone: "⏱️",
+        icone: "⚡",
         elements: [
             {
                 titre: "Pourquoi mesurer la vitesse ?",
@@ -112,24 +135,65 @@ export const SECTIONS_AIDE = [
                 titre: "Seuil de fluidité",
                 icone: "🎚️",
                 description:
-                    "Régler le temps total cible pour 10 réponses consécutives : " +
-                    "30s pour des élèves de CE2 bien automatisés, " +
-                    "60s (défaut) pour CP/CE1 en consolidation, " +
-                    "90s pour les élèves en difficulté.",
+                    "Les seuils sont exprimés en items par minute, " +
+                    "unité standard en orthophonie et en recherche sur la fluence de lecture. " +
+                    "7/min correspond à environ 90s pour 10 réponses, " +
+                    "10/min à 60s, 20/min à 30s.",
             },
             {
-                titre: "Point thermique",
-                icone: "🟢",
+                titre: "Indicateur de fluidité",
+                icone: "⚡",
                 description:
-                    "Un point coloré dans le coin bas gauche indique l'état de fluidité : vert (sous le seuil), orange (proche du seuil), rouge (au-dessus du seuil), gris (pas encore de données). L'élève ne voit pas de chronomètre.",
+                    "La barre de progression en haut de l'écran affiche la vitesse en temps réel " +
+                    "avec une icône colorée : ⚡ vert (fluide), ⏱ orange (limite), 🐢 rouge (lent). " +
+                    "L'élève ne voit pas de chronomètre — l'indicateur est une aide visuelle non anxiogène.",
             },
             {
                 titre: "Critère du brevet",
                 icone: "🎓",
                 description:
                     "Le brevet est accessible quand l'élève enchaîne 10 réussites consécutives " +
-                    "ET que ces 10 réponses ont été données dans le temps configuré " +
-                    "(30s, 60s ou 90s). Les deux conditions sont requises : fiabilité et fluidité.",
+                    "ET que la vitesse moyenne dépasse le seuil configuré. " +
+                    "Les deux conditions sont requises : fiabilité et fluidité.",
+            },
+        ],
+    },
+    {
+        id: "bilan",
+        label: "Bilan",
+        icone: "📊",
+        elements: [
+            {
+                titre: "Tableau de bord",
+                icone: "📋",
+                description:
+                    "Le bouton « Bilan » dans la barre de navigation ouvre le tableau de bord enseignant. " +
+                    "Il affiche le nombre de tentatives, d'erreurs, le taux global " +
+                    "et les items les plus souvent échoués.",
+            },
+            {
+                titre: "Items difficiles",
+                icone: "⚠️",
+                description:
+                    "Les 5 items avec le taux d'erreur le plus élevé sont mis en avant. " +
+                    "Cette information guide les choix pédagogiques : " +
+                    "quel item travailler en priorité, quelle confusion discriminer.",
+            },
+            {
+                titre: "Travailler les points durs",
+                icone: "🎯",
+                description:
+                    "Le bouton « Travailler les points durs » active le mode focus APC : " +
+                    "seuls les items difficiles sont proposés. " +
+                    "Le bilan reste actif — les progrès sont enregistrés en mode focus.",
+            },
+            {
+                titre: "Réinitialisation",
+                icone: "🔄",
+                description:
+                    "Le bouton « Réinitialiser le bilan » remet tous les compteurs à zéro. " +
+                    "À utiliser en début de séance ou en changeant d'élève. " +
+                    "Le score de la partie en cours n'est pas affecté.",
             },
         ],
     },
