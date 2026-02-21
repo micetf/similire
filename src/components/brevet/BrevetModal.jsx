@@ -32,6 +32,8 @@ function BrevetModal({
     tempsMoyen,
     onFermer,
     onRecommencer,
+    sourceCorpus,
+    nomCorpusCustom,
 }) {
     const [prenom, setPrenom] = useState("");
     const { canvasRef, genererBrevet, telecharger } = useBrevet();
@@ -40,7 +42,14 @@ function BrevetModal({
     // Génère le brevet à chaque changement de prénom ou d'ouverture
     useEffect(() => {
         if (estVisible) {
-            genererBrevet({ prenom, typeUnite, nbPropositions, tempsMoyen });
+            genererBrevet({
+                prenom,
+                typeUnite,
+                nbPropositions,
+                tempsMoyen,
+                sourceCorpus,
+                nomCorpusCustom,
+            });
         }
     }, [estVisible, prenom, typeUnite, nbPropositions, genererBrevet]);
 

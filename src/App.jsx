@@ -15,6 +15,8 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useConfig } from "@hooks/useConfig";
 import { useGameEngine } from "@hooks/useGameEngine";
 import { useBilan } from "@hooks/useBilan";
+import { useCorpusCustom } from "@hooks/useCorpusCustom";
+import CorpusEditor from "@/components/corpus/CorpusEditor";
 import Navbar from "@/components/layout/Navbar";
 import NavbarSpacer from "@/components/layout/NavbarSpacer";
 import ConfigPanel from "@/components/config/ConfigPanel";
@@ -45,7 +47,26 @@ function App() {
         setPolice,
         setDelaiMaxFluidite,
         setModeFocus,
+        setIdCorpusCustom,
+        activerCorpusCustom,
     } = useConfig();
+
+    const {
+        liste: listeCorpusCustom,
+        creerCorpus,
+        supprimerCorpus,
+        ajouterItem,
+        supprimerItem,
+        validerNom,
+    } = useCorpusCustom();
+
+    const corpusCustomActif = useMemo(() => {
+        if (!config.idCorpusCustom) return null;
+        return (
+            listeCorpusCustom.find((cc) => cc.id === config.idCorpusCustom) ??
+            null
+        );
+    }, [config.idCorpusCustom, listeCorpusCustom]);
 
     // ─── Bilan ──────────────────────────────────────────────────────────────
     /**
@@ -81,8 +102,7 @@ function App() {
         allerTourSuivant,
         recommencer,
         demarrerChrono,
-    } = useGameEngine(config, bilanBrut);
-
+    } = useGameEngine(config, bilanBrut, corpusCustomActif?.items ?? null);
     const {
         tourCourant,
         score,
@@ -100,6 +120,7 @@ function App() {
         () => !hasAideVue()
     );
     const [modalBilanVisible, setModalBilanVisible] = useState(false);
+    const [modalCorpusVisible, setModalCorpusVisible] = useState(false);
 
     // ─── Enregistrement du premier tour ─────────────────────────────────────
     // Intentionnellement limité au mount — les tours suivants sont enregistrés
@@ -224,6 +245,23 @@ function App() {
         setModeFocus(false);
     }, [setModeFocus]);
 
+    // ─── Modale corpus ───────────────────────────────────────────────────────────
+
+    const handleOuvrirCorpus = useCallback(() => {
+        setModalCorpusVisible(true);
+    }, []);
+
+    const handleFermerCorpus = useCallback(() => {
+        setModalCorpusVisible(false);
+    }, []);
+
+    // ─── Activation corpus custom ─────────────────────────────────────────────────
+    const handleActiverCorpusCustom = useCallback(
+        (corpusOuNull) => {
+            activerCorpusCustom(corpusOuNull ?? null);
+        },
+        [activerCorpusCustom]
+    );
     // ─── Style police ────────────────────────────────────────────────────────
     const stylePolice = {
         "--font-jeu":
@@ -238,6 +276,7 @@ function App() {
                 onAide={handleOuvrirAide}
                 onBilan={handleOuvrirBilan}
                 verrouille={config.verrouille}
+                onCorpusCustom={handleOuvrirCorpus}
             />
             <NavbarSpacer />
 
@@ -268,6 +307,8 @@ function App() {
                     onPolice={setPolice}
                     onDelaiMaxFluidite={setDelaiMaxFluidite}
                     onDesactiverFocus={handleDesactiverFocus}
+                    listeCorpusCustom={listeCorpusCustom}
+                    onActiverCorpusCustom={handleActiverCorpusCustom}
                 />
 
                 {/* Zone modèle */}
@@ -302,6 +343,8 @@ function App() {
                     tempsMoyen={tempsMoyen}
                     onFermer={handleFermerModal}
                     onRecommencer={handleRecommencer}
+                    sourceCorpus={config.idCorpusCustom ? "custom" : "natif"}
+                    nomCorpusCustom={corpusCustomActif?.nom ?? undefined}
                 />
             </main>
 
@@ -321,6 +364,20 @@ function App() {
                 onFermer={handleFermerBilan}
                 onTravaillerPointsDurs={handleTravaillerPointsDurs}
             />
+            {modalCorpusVisible && (
+                <CorpusEditor
+                    liste={listeCorpusCustom}
+                    idCorpusActif={config.idCorpusCustom ?? null}
+                    nbPropositions={config.nbPropositions}
+                    onFermer={handleFermerCorpus}
+                    onCreerCorpus={creerCorpus}
+                    onSupprimerCorpus={supprimerCorpus}
+                    onAjouterItem={ajouterItem}
+                    onSupprimerItem={supprimerItem}
+                    validerNom={validerNom}
+                    onActiverCorpusCustom={handleActiverCorpusCustom}
+                />
+            )}
         </>
     );
 }

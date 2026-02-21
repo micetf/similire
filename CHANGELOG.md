@@ -6,6 +6,52 @@ Ce projet respecte le [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.7.0] - Sprint F : Corpus personnalisable
+
+### Ajouté
+
+- `src/constants.js` — `NB_ITEMS_MAX_CORPUS_CUSTOM`, `NB_CORPUS_CUSTOM_MAX`,
+  `NOM_CORPUS_MAX_CHARS`, `CLES_STORAGE.CORPUS_CUSTOM`
+- `src/utils/storage.js` — `loadCorpusCustomFromStorage`, `saveCorpusCustomToStorage`
+- `src/hooks/useCorpusCustom.js` — CRUD corpus custom avec validation complète ;
+  distracteurs auto-calculés (tous les autres items du corpus) ;
+  guard défensif `TYPES_UNITE.includes(typeUnite)` dans `creerCorpus`
+- `src/components/corpus/ItemForm.jsx` — formulaire d'ajout d'item avec validation
+  temps réel (doublon, vide, limite atteinte)
+- `src/components/corpus/CorpusEditor.jsx` — modale 3 vues (liste / nouveau / éditer) ;
+  bouton "Utiliser" / "Désactiver" par corpus ; confirmation avant suppression ;
+  avertissement si items < nbPropositions ; compteur N/15 corpus
+
+### Modifié
+
+- `src/hooks/useConfig.js` — champ `idCorpusCustom` (session, non persisté) + setter
+  `setIdCorpusCustom` ; action atomique `activerCorpusCustom` (met à jour `typeUnite`
+  ET `idCorpusCustom` en un seul `setConfig` — évite les stale closures)
+- `src/hooks/useGameEngine.js` — paramètre `corpusActif` ; `itemsDisponibles` utilise
+  le corpus custom si actif ; `idCorpusCustom` ajouté aux dépendances du reset effect
+- `src/hooks/useBrevet.js` — `DonneesBrevet` : champs `sourceCorpus` et
+  `nomCorpusCustom` ; libellé brevet adapté ("a relevé le défi «…»") pour corpus custom
+- `src/components/brevet/BrevetModal.jsx` — props `sourceCorpus` et `nomCorpusCustom`
+  transmises à `genererBrevet`
+- `src/components/config/ConfigPanel.jsx` — sélecteur `<select>` corpus custom
+  (masqué si liste vide) ; boutons de type désactivés quand corpus custom actif ;
+  badge ✦ sous les boutons de type ; `onActiverCorpusCustom` en prop
+- `src/components/layout/Navbar.jsx` — bouton "Mes corpus" (desktop + mobile),
+  masqué si verrouillé
+- `src/App.jsx` — câblage complet `useCorpusCustom`, `corpusCustomActif`,
+  `CorpusEditor`, `handleActiverCorpusCustom` via `activerCorpusCustom` atomique ;
+  props `sourceCorpus` et `nomCorpusCustom` passées à `BrevetModal`
+
+### Règles métier
+
+- Type d'unité fixé à la création du corpus, non modifiable
+- Distracteurs automatiques = tous les autres items du corpus
+- Limite : 15 corpus × 50 items max
+- Brevet activé sur corpus custom avec libellé différencié
+  ("a relevé le défi «…»" vs "est capable de retrouver…")
+- Bilan et mode focus APC fonctionnels sur corpus custom
+- `idCorpusCustom` non persisté — corpus réactivé manuellement après rechargement
+
 ## [1.6.0] - 2026-02-21 — Sprint E : Mode focus APC + correctifs UX
 
 ### Ajouté

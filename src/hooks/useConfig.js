@@ -1,15 +1,8 @@
 /**
  * Hook de gestion de la configuration enseignant.
  *
- * Responsabilités :
- * - Stocker l'état de configuration (type d'unité, propositions, mode TNI,
- *   verrouillage, police d'apprentissage, mode focus APC)
- * - Persister dans localStorage les réglages enseignant
- * - Exposer des setters atomiques conformes au pattern DRY (écriture directe,
- *   jamais via useEffect)
- *
  * Ce qui est persisté    : typeUnite, nbPropositions, police, delaiMaxFluidite
- * Ce qui ne l'est pas    : modeTni, verrouille, modeFocus (états de session uniquement)
+ * Ce qui ne l'est pas    : modeTni, verrouille, modeFocus, idCorpusCustom
  *
  * @module hooks/useConfig
  */
@@ -24,52 +17,26 @@ import {
 import { loadConfigFromStorage, saveConfigToStorage } from "@utils/storage";
 
 /**
- * @typedef {'lettre' | 'syllabe' | 'mot'} TypeUnite
- */
-
-/**
  * @typedef {Object} Config
- * @property {TypeUnite} typeUnite        - Type d'unité linguistique sélectionné
- * @property {number}    nbPropositions   - Nombre d'étiquettes proposées (2–8)
- * @property {boolean}   modeTni          - Mode TNI activé (non persisté)
- * @property {boolean}   verrouille       - Configuration verrouillée (non persisté)
- * @property {string}    police           - Identifiant de la police d'apprentissage
- * @property {number}    delaiMaxFluidite - Seuil de fluidité en ms (persisté)
- * @property {boolean}   modeFocus        - Mode focus APC actif (non persisté, Sprint E)
+ * @property {string}      typeUnite        - Type d'unité linguistique
+ * @property {number}      nbPropositions   - Nombre d'étiquettes (2–8)
+ * @property {boolean}     modeTni          - Mode TNI (non persisté)
+ * @property {boolean}     verrouille       - Configuration verrouillée (non persisté)
+ * @property {string}      police           - Police d'apprentissage (persisté)
+ * @property {number}      delaiMaxFluidite - Seuil fluidité ms (persisté)
+ * @property {boolean}     modeFocus        - Mode focus APC (non persisté)
+ * @property {string|null} idCorpusCustom   - Id corpus actif (non persisté, Sprint F)
  */
 
-/**
- * Hook de gestion de la configuration enseignant.
- * Instancier une seule fois dans App.jsx et distribuer la config par props.
- *
- * @returns {{
- *   config: Config,
- *   setTypeUnite: function(TypeUnite): void,
- *   setNbPropositions: function(number): void,
- *   toggleModeTni: function(): void,
- *   toggleVerrouillage: function(): void,
- *   setPolice: function(string): void,
- *   setDelaiMaxFluidite: function(number): void,
- *   setModeFocus: function(boolean): void,
- * }}
- */
 export function useConfig() {
     const [config, setConfig] = useState(() => loadConfigFromStorage());
 
-    /**
-     * Change le type d'unité linguistique et persiste le choix.
-     * @param {TypeUnite} type
-     */
     const setTypeUnite = (type) => {
         const next = { ...config, typeUnite: type };
         setConfig(next);
         saveConfigToStorage(next);
     };
 
-    /**
-     * Change le nombre de propositions (clamé entre MIN et MAX) et persiste.
-     * @param {number} nb
-     */
     const setNbPropositions = (nb) => {
         const clamped = Math.max(
             NB_PROPOSITIONS_MIN,
@@ -80,26 +47,14 @@ export function useConfig() {
         saveConfigToStorage(next);
     };
 
-    /**
-     * Bascule le mode TNI (non persisté — état de session uniquement).
-     */
     const toggleModeTni = () => {
         setConfig((prev) => ({ ...prev, modeTni: !prev.modeTni }));
     };
 
-    /**
-     * Bascule le verrouillage de la configuration (non persisté).
-     */
     const toggleVerrouillage = () => {
         setConfig((prev) => ({ ...prev, verrouille: !prev.verrouille }));
     };
 
-    /**
-     * Change la police d'apprentissage et persiste le choix.
-     * La valeur doit être une clé de POLICES_DISPONIBLES.
-     *
-     * @param {string} idPolice - Clé dans POLICES_DISPONIBLES
-     */
     const setPolice = (idPolice) => {
         if (!POLICES_DISPONIBLES[idPolice]) return;
         const next = { ...config, police: idPolice };
@@ -107,12 +62,6 @@ export function useConfig() {
         saveConfigToStorage(next);
     };
 
-    /**
-     * Change le seuil de fluidité et persiste le choix.
-     * La valeur doit être dans DELAIS_FLUIDITE.
-     *
-     * @param {number} delai - Seuil en ms (3000, 6000 ou 9000)
-     */
     const setDelaiMaxFluidite = (delai) => {
         if (!DELAIS_FLUIDITE.includes(delai)) return;
         const next = { ...config, delaiMaxFluidite: delai };
@@ -120,15 +69,38 @@ export function useConfig() {
         saveConfigToStorage(next);
     };
 
-    /**
-     * Active ou désactive le mode focus APC.
-     * Non persisté — état de session uniquement.
-     * L'activation cible les items dont le taux d'erreur dépasse SEUIL_ERREUR_FOCUS.
-     *
-     * @param {boolean} actif
-     */
     const setModeFocus = (actif) => {
         setConfig((prev) => ({ ...prev, modeFocus: actif }));
+    };
+
+    /**
+     * Active ou désactive un corpus personnalisé.
+     * Non persisté — état de session uniquement.
+     * À appeler depuis App.jsx combiné avec setTypeUnite.
+     *
+     * @param {string|null} id - Id du corpus custom ou null pour désactiver
+     */
+    const setIdCorpusCustom = (id) => {
+        setConfig((prev) => ({ ...prev, idCorpusCustom: id ?? null }));
+    };
+
+    /**
+     * Active un corpus personnalisé : met à jour typeUnite ET idCorpusCustom
+     * en un seul appel setState atomique pour éviter les stale closures.
+     * typeUnite est persisté ; idCorpusCustom reste en session uniquement.
+     *
+     * @param {{ id: string, typeUnite: string }|null} corpus
+     */
+    const activerCorpusCustom = (corpus) => {
+        setConfig((prev) => {
+            const next = {
+                ...prev,
+                typeUnite: corpus ? corpus.typeUnite : prev.typeUnite,
+                idCorpusCustom: corpus ? corpus.id : null,
+            };
+            if (corpus) saveConfigToStorage(next); // persiste typeUnite si changement
+            return next;
+        });
     };
 
     return {
@@ -140,5 +112,7 @@ export function useConfig() {
         setPolice,
         setDelaiMaxFluidite,
         setModeFocus,
+        setIdCorpusCustom, // Sprint F
+        activerCorpusCustom,
     };
 }

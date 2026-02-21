@@ -8,13 +8,13 @@
 
 import PropTypes from "prop-types";
 import { useState, useCallback } from "react";
-
+import { BookOpen } from "lucide-react";
 /**
  * Navbar fixe MiCetF.
  *
  * @returns {JSX.Element}
  */
-function Navbar({ onAide, onBilan, verrouille }) {
+function Navbar({ onAide, onBilan, verrouille, onCorpusCustom }) {
     const [menuOuvert, setMenuOuvert] = useState(false);
 
     const handleContact = useCallback(() => {
@@ -143,7 +143,21 @@ function Navbar({ onAide, onBilan, verrouille }) {
                                     </button>
                                 </li>
                             )}
-
+                            {!verrouille && (
+                                <button
+                                    type="button"
+                                    onClick={onCorpusCustom}
+                                    className="flex items-center gap-2 px-3 py-1.5
+                   bg-gray-700 hover:bg-gray-600
+                   text-white text-sm rounded transition-colors"
+                                    title="Gérer mes corpus personnalisés"
+                                >
+                                    <BookOpen size={15} aria-hidden="true" />
+                                    <span className="hidden lg:inline">
+                                        Mes corpus
+                                    </span>
+                                </button>
+                            )}
                             {/* Don PayPal */}
                             <li>
                                 <form
@@ -250,6 +264,21 @@ function Navbar({ onAide, onBilan, verrouille }) {
                                 <span className="text-sm">Bilan</span>
                             </button>
                         )}
+                        {!verrouille && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onCorpusCustom();
+                                    setMenuOuvert(false);
+                                }}
+                                className="flex items-center gap-2 px-3 py-2
+                   bg-gray-600 hover:bg-gray-700
+                   text-white rounded transition-colors"
+                            >
+                                <BookOpen size={16} aria-hidden="true" />
+                                <span className="text-sm">Mes corpus</span>
+                            </button>
+                        )}
                         <div className="flex gap-2 px-2">
                             {/* Don PayPal mobile */}
                             <form
@@ -320,6 +349,7 @@ Navbar.propTypes = {
     onAide: PropTypes.func.isRequired,
     onBilan: PropTypes.func.isRequired,
     verrouille: PropTypes.bool.isRequired,
+    onCorpusCustom: PropTypes.func.isRequired,
 };
 
 export default Navbar;

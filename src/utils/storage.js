@@ -13,23 +13,13 @@ import {
     DELAI_MAX_FLUIDITE_DEFAUT,
 } from "@constants";
 
-/**
- * Configuration persistée dans localStorage.
- * Sous-ensemble de Config — exclut modeTni, verrouille et modeFocus (état de session).
- *
- * @typedef {Object} ConfigPersistee
- * @property {string} typeUnite         - Type d'unité linguistique
- * @property {number} nbPropositions    - Nombre de propositions
- * @property {string} police            - Identifiant de la police d'apprentissage
- * @property {number} delaiMaxFluidite  - Seuil de fluidité en ms
+/** @typedef {Object} ConfigPersistee
+ * @property {string} typeUnite
+ * @property {number} nbPropositions
+ * @property {string} police
+ * @property {number} delaiMaxFluidite
  */
 
-/**
- * Valeurs par défaut utilisées en l'absence de configuration persistée.
- * modeTni, verrouille et modeFocus sont des états de session — non persistés.
- *
- * @type {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }}
- */
 const CONFIG_DEFAUT = {
     typeUnite: TYPES_UNITE[0],
     nbPropositions: NB_PROPOSITIONS_DEFAUT,
@@ -37,39 +27,29 @@ const CONFIG_DEFAUT = {
     delaiMaxFluidite: DELAI_MAX_FLUIDITE_DEFAUT,
     modeTni: false,
     verrouille: false,
-    modeFocus: false, // Sprint E — état de session, jamais persisté
+    modeFocus: false,
+    idCorpusCustom: null, // Sprint F — session uniquement, jamais persisté
 };
 
-/**
- * Charge la configuration depuis localStorage.
- * Retourne les valeurs par défaut si aucune config n'existe
- * ou si le JSON est corrompu.
- *
- * @returns {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }}
- */
 export function loadConfigFromStorage() {
     try {
         const raw = localStorage.getItem(CLES_STORAGE.CONFIG);
         if (!raw) return { ...CONFIG_DEFAUT };
-
         const parsed = JSON.parse(raw);
 
         const typeUnite = TYPES_UNITE.includes(parsed.typeUnite)
             ? parsed.typeUnite
             : CONFIG_DEFAUT.typeUnite;
-
         const nbPropositions =
             typeof parsed.nbPropositions === "number" &&
             parsed.nbPropositions >= 2 &&
             parsed.nbPropositions <= 8
                 ? parsed.nbPropositions
                 : CONFIG_DEFAUT.nbPropositions;
-
         const police =
             typeof parsed.police === "string" && parsed.police.length > 0
                 ? parsed.police
                 : CONFIG_DEFAUT.police;
-
         const delaiMaxFluidite =
             typeof parsed.delaiMaxFluidite === "number" &&
             parsed.delaiMaxFluidite > 0
@@ -77,7 +57,7 @@ export function loadConfigFromStorage() {
                 : CONFIG_DEFAUT.delaiMaxFluidite;
 
         return {
-            ...CONFIG_DEFAUT, // inclut modeFocus: false — jamais lu depuis localStorage
+            ...CONFIG_DEFAUT,
             typeUnite,
             nbPropositions,
             police,
@@ -88,14 +68,6 @@ export function loadConfigFromStorage() {
     }
 }
 
-/**
- * Sauvegarde la configuration dans localStorage.
- * Seuls les champs persistés sont écrits —
- * modeTni, verrouille et modeFocus sont intentionnellement omis.
- *
- * @param {ConfigPersistee & { modeTni: boolean, verrouille: boolean, modeFocus: boolean }} config
- * @returns {void}
- */
 export function saveConfigToStorage(config) {
     try {
         const { typeUnite, nbPropositions, police, delaiMaxFluidite } = config;
@@ -109,15 +81,10 @@ export function saveConfigToStorage(config) {
             })
         );
     } catch {
-        // localStorage indisponible — l'application continue sans persistance
+        // localStorage indisponible
     }
 }
 
-/**
- * Vérifie si l'aide a déjà été affichée lors d'une session précédente.
- *
- * @returns {boolean}
- */
 export function hasAideVue() {
     try {
         return localStorage.getItem(CLES_STORAGE.AIDE_VUE) === "1";
@@ -126,25 +93,14 @@ export function hasAideVue() {
     }
 }
 
-/**
- * Marque l'aide comme vue dans localStorage.
- *
- * @returns {void}
- */
 export function markAideVue() {
     try {
         localStorage.setItem(CLES_STORAGE.AIDE_VUE, "1");
     } catch {
-        // localStorage indisponible — pas bloquant
+        // noop
     }
 }
 
-/**
- * Charge le bilan depuis localStorage.
- * Retourne un bilan vide si absent ou corrompu.
- *
- * @returns {{ tentatives: Object.<string, number>, erreurs: Object.<string, number> }}
- */
 export function loadBilanFromStorage() {
     try {
         const raw = localStorage.getItem(CLES_STORAGE.BILAN);
@@ -165,16 +121,51 @@ export function loadBilanFromStorage() {
     }
 }
 
-/**
- * Sauvegarde le bilan dans localStorage.
- *
- * @param {{ tentatives: Object.<string, number>, erreurs: Object.<string, number> }} bilan
- * @returns {void}
- */
 export function saveBilanToStorage(bilan) {
     try {
         localStorage.setItem(CLES_STORAGE.BILAN, JSON.stringify(bilan));
     } catch {
-        // localStorage indisponible — pas bloquant
+        // noop
+    }
+}
+
+// ─── Corpus personnalisable (Sprint F) ───────────────────────────────────────
+
+/**
+ * Charge la liste brute des corpus personnalisés depuis localStorage.
+ * Retourne un tableau vide si absent ou corrompu.
+ *
+ * Le format stocké est `CorpusCustomStocke[]` — sans les items calculés.
+ *
+ * @returns {Array<{ id: string, nom: string, typeUnite: string, valeurs: string[] }>}
+ */
+export function loadCorpusCustomFromStorage() {
+    try {
+        const raw = localStorage.getItem(CLES_STORAGE.CORPUS_CUSTOM);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(
+            (cc) =>
+                typeof cc.id === "string" &&
+                typeof cc.nom === "string" &&
+                typeof cc.typeUnite === "string" &&
+                Array.isArray(cc.valeurs)
+        );
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Sauvegarde la liste brute des corpus personnalisés dans localStorage.
+ *
+ * @param {Array<{ id: string, nom: string, typeUnite: string, valeurs: string[] }>} liste
+ */
+export function saveCorpusCustomToStorage(liste) {
+    try {
+        localStorage.setItem(CLES_STORAGE.CORPUS_CUSTOM, JSON.stringify(liste));
+    } catch {
+        // localStorage indisponible
     }
 }

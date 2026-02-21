@@ -213,7 +213,7 @@ src/components/layout/Navbar.jsx          ← bouton Bilan
 
 ---
 
-## Sprint E — Mode focus APC 🟠 P2
+## Sprint E — Mode focus APC 🟠 P2 ✅ TERMINÉ
 
 **Objectif :** Proposer un corpus ciblé sur les items échoués  
 **Durée estimée :** 1 session  
@@ -247,7 +247,7 @@ src/components/bilan/BilanPanel.jsx    ← bouton "Travailler les points durs"
 
 ---
 
-## Sprint F — Corpus personnalisable 🟡 P3
+## Sprint F — Corpus personnalisable 🟡 P3 ✅ TERMINÉ
 
 **Objectif :** Permettre à l'enseignant de saisir ses propres items  
 **Durée estimée :** 3 sessions  
